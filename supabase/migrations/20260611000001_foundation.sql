@@ -118,8 +118,13 @@ alter table public.profiles enable row level security;
 alter table public.workspaces enable row level security;
 alter table public.workspace_members enable row level security;
 
--- 多層防御: 匿名ロールにはテーブル権限自体を与えない（policy も存在しない）
+-- テーブル権限は暗黙のデフォルト権限に頼らず明示する。
+-- 行レベルの制御は RLS policy が担う。匿名ロールには一切与えない（多層防御）。
 revoke all on public.profiles, public.workspaces, public.workspace_members from anon;
+grant select, insert, update, delete
+  on public.profiles, public.workspaces, public.workspace_members
+  to authenticated;
+grant all on public.profiles, public.workspaces, public.workspace_members to service_role;
 
 -- profiles: 本人のみ
 create policy profiles_select_own on public.profiles

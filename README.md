@@ -30,9 +30,14 @@ Docker と Supabase CLI が必要。
 
 ```bash
 supabase start    # ローカルスタック起動（migration 適用）
-supabase test db  # pgTAP による RLS テスト
+supabase test db  # pgTAP による RLS テスト（pnpm db:test）
+pnpm db:types     # generated TypeScript types を更新（packages/database/src/types.gen.ts）
 cp .env.example apps/web/.env.local  # 値を supabase start の出力で置換
 ```
+
+Docker ランタイムは Colima を使用（`colima start --cpu 2 --memory 4 --disk 30`）。
+`pnpm db:types` は CLI v2.40.7 を pin している（v2.106 以降の `gen types --local` は
+`supabase login` を要求するため。ログイン済みなら brew 版 CLI でも生成可能）。
 
 ## 関連
 

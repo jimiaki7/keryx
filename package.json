@@ -11,6 +11,8 @@
     "lint": "eslint .",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "db:types": "pnpm dlx supabase@2.40.7 gen types typescript --local > packages/database/src/types.gen.ts",
+    "db:test": "supabase test db",
     "format": "prettier --check .",
     "format:fix": "prettier --write ."
   },
