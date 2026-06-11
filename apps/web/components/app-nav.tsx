@@ -102,7 +102,7 @@ export function MobileTopBar() {
   const active = isActive(pathname, '/settings');
   return (
     <header className="flex items-center justify-between border-b border-line bg-paper-raised px-4 py-3 md:hidden">
-      <Link href="/" className="text-lg font-semibold text-indigo-deep">
+      <Link href="/" className="font-display text-lg font-semibold text-indigo-deep">
         Keryx
       </Link>
       <Link

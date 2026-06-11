@@ -13,6 +13,10 @@
   --color-line: #e7e2d8;
   --font-sans:
     'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', system-ui, sans-serif;
+  /* ロゴ・見出し用の serif（ギリシア文字 ΚΗΡΥΞ も含む） */
+  --font-display:
+    'Iowan Old Style', 'Palatino', Georgia, 'Times New Roman', 'Hiragino Mincho ProN', 'Yu Mincho',
+    serif;
 }
 
 body {

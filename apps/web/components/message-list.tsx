@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { MESSAGE_STATUS_LABELS, MESSAGE_TYPE_LABELS } from '@/lib/labels';
 
 export type MessageListItem = {
@@ -18,7 +19,12 @@ export function MessageList({ messages }: { messages: MessageListItem[] }) {
         return (
           <li key={m.id} className="rounded-lg border border-line bg-paper-raised px-4 py-3">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="font-medium text-ink">{m.title || '（無題）'}</span>
+              <Link
+                href={`/messages/${m.id}`}
+                className="font-medium text-ink hover:text-indigo-deep hover:underline"
+              >
+                {m.title || '（無題）'}
+              </Link>
               {primary ? (
                 <span className="text-sm text-indigo-soft">{primary.display_text}</span>
               ) : null}

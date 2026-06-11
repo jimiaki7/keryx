@@ -16,7 +16,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </a>
       <aside className="hidden border-r border-line bg-paper-raised px-3 py-6 md:sticky md:top-0 md:flex md:h-dvh md:w-60 md:flex-col">
         <div className="px-3 pb-1">
-          <span className="text-xl font-semibold tracking-wide text-indigo-deep">Keryx</span>
+          <span className="font-display text-xl font-semibold tracking-wide text-indigo-deep">
+            Keryx
+          </span>
         </div>
         <p className="truncate px-3 pb-5 text-xs text-ink-muted">{workspace.name}</p>
         <SidebarNav />
