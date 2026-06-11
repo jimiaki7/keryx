@@ -167,6 +167,16 @@ begin
   if uid is null then
     raise exception 'authentication required';
   end if;
+
+  -- 冪等: すでに active membership があればその workspace を返す（初回ログインの二重実行対策）
+  select m.workspace_id into new_id
+  from public.workspace_members m
+  where m.user_id = uid and m.status = 'active'
+  order by m.created_at
+  limit 1;
+  if new_id is not null then
+    return new_id;
+  end if;
   if workspace_name is null or length(trim(workspace_name)) = 0 then
     raise exception 'workspace name is required';
   end if;

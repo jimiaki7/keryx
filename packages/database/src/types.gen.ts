@@ -34,6 +34,256 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          changed_fields: Json
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          summary: string
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          changed_fields?: Json
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          summary?: string
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          changed_fields?: Json
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          summary?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bible_books: {
+        Row: {
+          aliases: Json
+          canonical_order: number
+          chapter_count: number
+          genre: string
+          name_en: string
+          name_ja: string
+          osis: string
+          short_name_ja: string
+          testament: string
+        }
+        Insert: {
+          aliases?: Json
+          canonical_order: number
+          chapter_count: number
+          genre: string
+          name_en: string
+          name_ja: string
+          osis: string
+          short_name_ja: string
+          testament: string
+        }
+        Update: {
+          aliases?: Json
+          canonical_order?: number
+          chapter_count?: number
+          genre?: string
+          name_en?: string
+          name_ja?: string
+          osis?: string
+          short_name_ja?: string
+          testament?: string
+        }
+        Relationships: []
+      }
+      display_id_counters: {
+        Row: {
+          counter: number
+          entity: string
+          workspace_id: string
+          year: number
+        }
+        Insert: {
+          counter?: number
+          entity: string
+          workspace_id: string
+          year: number
+        }
+        Update: {
+          counter?: number
+          entity?: string
+          workspace_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_id_counters_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_passages: {
+        Row: {
+          book_id: string
+          created_at: string
+          display_text: string
+          end_chapter: number
+          end_verse: number | null
+          id: string
+          message_id: string
+          position: number
+          role: string
+          start_chapter: number
+          start_verse: number | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          display_text: string
+          end_chapter: number
+          end_verse?: number | null
+          id?: string
+          message_id: string
+          position?: number
+          role?: string
+          start_chapter: number
+          start_verse?: number | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          display_text?: string
+          end_chapter?: number
+          end_verse?: number | null
+          id?: string
+          message_id?: string
+          position?: number
+          role?: string
+          start_chapter?: number
+          start_verse?: number | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_passages_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "bible_books"
+            referencedColumns: ["osis"]
+          },
+          {
+            foreignKeyName: "message_passages_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_passages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          central_message: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          display_id: string
+          id: string
+          metadata: Json
+          notes_markdown: string
+          outline_markdown: string
+          source_links: Json
+          status: string
+          summary: string
+          title: string
+          type: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          central_message?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          display_id?: string
+          id?: string
+          metadata?: Json
+          notes_markdown?: string
+          outline_markdown?: string
+          source_links?: Json
+          status?: string
+          summary?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id: string
+        }
+        Update: {
+          central_message?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          display_id?: string
+          id?: string
+          metadata?: Json
+          notes_markdown?: string
+          outline_markdown?: string
+          source_links?: Json
+          status?: string
+          summary?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -156,6 +406,10 @@ export type Database = {
       }
       member_role: {
         Args: { target_workspace: string }
+        Returns: string
+      }
+      next_display_id: {
+        Args: { entity_name: string; prefix: string; target_workspace: string }
         Returns: string
       }
     }
