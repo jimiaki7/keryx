@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Keryx',
+  title: { default: 'Keryx', template: '%s | Keryx' },
   description: '説教計画・礼拝準備・振り返りを一つの流れに統合するワークスペース',
 };
 
