@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+
+/* Keryx design tokens — calm / pastoral / scholarly
+   温かいオフホワイトの紙面、深い藍、金のアクセント */
+@theme {
+  --color-paper: #faf8f3;
+  --color-paper-raised: #ffffff;
+  --color-ink: #2b303b;
+  --color-ink-muted: #6b7280;
+  --color-indigo-deep: #1e2a4a;
+  --color-indigo-soft: #3b4a73;
+  --color-gold: #b08d3e;
+  --color-line: #e7e2d8;
+  --font-sans:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-indigo-soft);
+  outline-offset: 2px;
+}
