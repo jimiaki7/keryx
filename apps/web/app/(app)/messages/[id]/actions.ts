@@ -360,3 +360,34 @@ export async function setPreparationStage(messageId: string, stage: string): Pro
   revalidatePath('/messages');
   revalidatePath('/');
 }
+
+/** 既存の礼拝予定（Gathering）へこのメッセージを割り当てる */
+export async function assignMessageToGathering(
+  messageId: string,
+  _prev: OpportunityFormState,
+  formData: FormData,
+): Promise<OpportunityFormState> {
+  const gatheringId = z.uuid().safeParse(formData.get('gathering_id'));
+  if (!gatheringId.success) {
+    return { error: '割り当てる礼拝予定を選択してください。' };
+  }
+  const workspace = await getActiveWorkspace();
+  const supabase = await createClient();
+  const { error } = await supabase.from('message_deliveries').insert({
+    message_id: messageId,
+    gathering_id: gatheringId.data,
+    workspace_id: workspace.id,
+  });
+  if (error) {
+    return {
+      error:
+        error.code === '23505'
+          ? 'この礼拝予定にはすでに割り当てられています。'
+          : '割り当てできませんでした。もう一度お試しください。',
+    };
+  }
+  revalidatePath(`/messages/${messageId}`);
+  revalidatePath('/calendar');
+  revalidatePath('/');
+  return { ok: true, nonce: Date.now() };
+}

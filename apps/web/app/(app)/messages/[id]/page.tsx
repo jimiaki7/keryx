@@ -8,7 +8,11 @@ import { getActiveWorkspace } from '@/lib/workspace';
 import { MessageDeleteButton, MessageEditor } from './message-editor';
 import { PassageEditor } from './passage-editor';
 import { PreparationStageControl } from './preparation-stage';
-import { SpeakingOpportunities, type OpportunityItem } from './speaking-opportunities';
+import {
+  SpeakingOpportunities,
+  type GatheringOption,
+  type OpportunityItem,
+} from './speaking-opportunities';
 
 export const metadata: Metadata = { title: 'メッセージ' };
 
@@ -33,13 +37,29 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
     (a, b) => a.position - b.position || a.id.localeCompare(b.id),
   );
 
-  const { data: deliveriesRaw } = await supabase
-    .from('message_deliveries')
-    .select(
-      'id, speaker_name, gatherings!inner(id, display_id, title, kind, starts_at, deleted_at, venues(name))',
-    )
-    .eq('message_id', message.id)
-    .order('created_at', { ascending: true });
+  const [{ data: deliveriesRaw }, { data: candidatesRaw }] = await Promise.all([
+    supabase
+      .from('message_deliveries')
+      .select(
+        'id, speaker_name, gatherings!inner(id, display_id, title, kind, starts_at, deleted_at, venues(name))',
+      )
+      .eq('message_id', message.id)
+      .order('created_at', { ascending: true }),
+    // 割り当て候補: 今後の礼拝予定（このメッセージが未割り当てのもの）
+    supabase
+      .from('gatherings')
+      .select('id, title, kind, starts_at, message_deliveries(message_id)')
+      .eq('workspace_id', workspace.id)
+      .is('deleted_at', null)
+      .neq('status', 'canceled')
+      .gte('starts_at', new Date().toISOString())
+      .order('starts_at', { ascending: true })
+      .limit(30),
+  ]);
+
+  const candidates: GatheringOption[] = (candidatesRaw ?? [])
+    .filter((g) => !g.message_deliveries.some((d) => d.message_id === message.id))
+    .map((g) => ({ id: g.id, title: g.title, kind: g.kind, starts_at: g.starts_at }));
 
   const opportunities: OpportunityItem[] = (deliveriesRaw ?? [])
     .filter((d) => d.gatherings.deleted_at === null)
@@ -84,7 +104,11 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
       <div className="flex flex-col gap-5">
         <PassageEditor messageId={message.id} passages={passages} />
         <PreparationStageControl messageId={message.id} stage={message.preparation_stage} />
-        <SpeakingOpportunities messageId={message.id} opportunities={opportunities} />
+        <SpeakingOpportunities
+          messageId={message.id}
+          opportunities={opportunities}
+          candidates={candidates}
+        />
         <MessageEditor message={message} />
       </div>
     </>
