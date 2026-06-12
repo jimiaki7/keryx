@@ -25,6 +25,14 @@ export const MESSAGE_STATUS_LABELS: Record<string, string> = {
   archived: 'アーカイブ',
 };
 
+export const PREPARATION_STAGE_LABELS: Record<string, string> = {
+  not_started: '未着手',
+  exegesis: '釈義',
+  outline: 'アウトライン',
+  manuscript: '原稿',
+  completed: '完了',
+};
+
 export const GATHERING_KIND_LABELS: Record<string, string> = {
   sunday_worship: '主日礼拝',
   prayer_meeting: '祈祷会',

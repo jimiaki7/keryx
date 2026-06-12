@@ -21,11 +21,7 @@ function preventImeSubmit(e: KeyboardEvent<HTMLInputElement>) {
   }
 }
 
-export function GatheringCreateForm({
-  defaultStartsAt,
-}: {
-  defaultStartsAt?: string | undefined;
-}) {
+export function GatheringCreateForm({ defaultStartsAt }: { defaultStartsAt?: string | undefined }) {
   const [state, formAction, pending] = useActionState(createGathering, initialState);
 
   return (

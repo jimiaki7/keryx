@@ -370,6 +370,7 @@ export type Database = {
           metadata: Json
           notes_markdown: string
           outline_markdown: string
+          preparation_stage: string
           primary_series_id: string | null
           source_links: Json
           status: string
@@ -391,6 +392,7 @@ export type Database = {
           metadata?: Json
           notes_markdown?: string
           outline_markdown?: string
+          preparation_stage?: string
           primary_series_id?: string | null
           source_links?: Json
           status?: string
@@ -412,6 +414,7 @@ export type Database = {
           metadata?: Json
           notes_markdown?: string
           outline_markdown?: string
+          preparation_stage?: string
           primary_series_id?: string | null
           source_links?: Json
           status?: string
@@ -433,63 +436,6 @@ export type Database = {
           },
           {
             foreignKeyName: "messages_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      preparation_tasks: {
-        Row: {
-          completed_at: string | null
-          created_at: string
-          due_at: string | null
-          id: string
-          message_id: string
-          notes: string
-          position: number
-          status: string
-          title: string
-          updated_at: string
-          workspace_id: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string
-          due_at?: string | null
-          id?: string
-          message_id: string
-          notes?: string
-          position?: number
-          status?: string
-          title: string
-          updated_at?: string
-          workspace_id: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string
-          due_at?: string | null
-          id?: string
-          message_id?: string
-          notes?: string
-          position?: number
-          status?: string
-          title?: string
-          updated_at?: string
-          workspace_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "preparation_tasks_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "preparation_tasks_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"

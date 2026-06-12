@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { MESSAGE_STATUS_LABELS, MESSAGE_TYPE_LABELS } from '@/lib/labels';
+import { MESSAGE_STATUS_LABELS, MESSAGE_TYPE_LABELS, PREPARATION_STAGE_LABELS } from '@/lib/labels';
 
 export type MessageListItem = {
   id: string;
   display_id: string;
   type: string;
   status: string;
+  preparation_stage: string;
   title: string;
   created_at: string;
   message_passages: { display_text: string; role: string }[];
@@ -34,6 +35,9 @@ export function MessageList({ messages }: { messages: MessageListItem[] }) {
               <span>{MESSAGE_TYPE_LABELS[m.type] ?? m.type}</span>
               <span className="rounded-full border border-line px-2 py-0.5">
                 {MESSAGE_STATUS_LABELS[m.status] ?? m.status}
+              </span>
+              <span className="rounded-full bg-indigo-deep/5 px-2 py-0.5 text-indigo-deep">
+                準備: {PREPARATION_STAGE_LABELS[m.preparation_stage] ?? m.preparation_stage}
               </span>
               <time dateTime={m.created_at}>
                 {new Date(m.created_at).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })}

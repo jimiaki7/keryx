@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { preparationTemplateFor } from '@keryx/domain';
+import { isPreparationStage } from '@keryx/domain';
 import { parsePassage } from '@keryx/scripture';
 import { createClient } from '@/lib/supabase/server';
 import { findOrCreateVenue } from '@/lib/venues';
@@ -345,161 +345,21 @@ export async function removeSpeakingOpportunity(
 }
 
 // ---------------------------------------------------------------------------
-// 準備タスク（KX-015）
+// 準備段階（ADR-0003: 単一ステージ）
 // ---------------------------------------------------------------------------
 
-export type TaskFormState = { ok?: boolean; nonce?: number; error?: string };
-
-const TASK_STATUSES = ['todo', 'doing', 'done', 'skipped'] as const;
-
-export async function updateTask(
-  taskId: string,
-  messageId: string,
-  _prev: TaskFormState,
-  formData: FormData,
-): Promise<TaskFormState> {
-  const parsed = z
-    .object({
-      status: z.enum(TASK_STATUSES),
-      title: z.string().trim().min(1, 'タスク名を入力してください。').max(100),
-      due_on: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/)
-        .or(z.literal('')),
-      notes: z.string().trim().max(1000),
-    })
-    .safeParse({
-      status: formData.get('status'),
-      title: formData.get('title'),
-      due_on: formData.get('due_on') ?? '',
-      notes: formData.get('notes') ?? '',
-    });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? '入力内容をご確認ください。' };
-  }
-  const workspace = await getActiveWorkspace();
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from('preparation_tasks')
-    .update({
-      status: parsed.data.status,
-      title: parsed.data.title,
-      notes: parsed.data.notes,
-      // 期限は日付のみ入力し、Asia/Tokyo のその日の終わりとして保存する
-      due_at: parsed.data.due_on ? `${parsed.data.due_on}T23:59:59+09:00` : null,
-    })
-    .eq('id', taskId)
-    .eq('workspace_id', workspace.id);
-  if (error) return { error: '更新できませんでした。もう一度お試しください。' };
-  revalidatePath(`/messages/${messageId}`);
-  revalidatePath('/');
-  return { ok: true, nonce: Date.now() };
-}
-
-export async function addTask(
-  messageId: string,
-  _prev: TaskFormState,
-  formData: FormData,
-): Promise<TaskFormState> {
-  const title = z
-    .string()
-    .trim()
-    .min(1, 'タスク名を入力してください。')
-    .max(100)
-    .safeParse(formData.get('title'));
-  if (!title.success) {
-    return { error: title.error.issues[0]?.message ?? 'タスク名を入力してください。' };
-  }
-  const workspace = await getActiveWorkspace();
-  const supabase = await createClient();
-  const { data: maxRow } = await supabase
-    .from('preparation_tasks')
-    .select('position')
-    .eq('message_id', messageId)
-    .order('position', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const { error } = await supabase.from('preparation_tasks').insert({
-    message_id: messageId,
-    workspace_id: workspace.id,
-    title: title.data,
-    position: (maxRow?.position ?? 0) + 1,
-  });
-  if (error) return { error: '追加できませんでした。もう一度お試しください。' };
-  revalidatePath(`/messages/${messageId}`);
-  revalidatePath('/');
-  return { ok: true, nonce: Date.now() };
-}
-
-export async function deleteTask(taskId: string, messageId: string): Promise<void> {
+export async function setPreparationStage(messageId: string, stage: string): Promise<void> {
+  if (!isPreparationStage(stage)) return;
   const workspace = await getActiveWorkspace();
   const supabase = await createClient();
   await supabase
-    .from('preparation_tasks')
-    .delete()
-    .eq('id', taskId)
-    .eq('workspace_id', workspace.id);
-  revalidatePath(`/messages/${messageId}`);
-  revalidatePath('/');
-}
-
-export async function moveTask(
-  taskId: string,
-  messageId: string,
-  direction: 'up' | 'down',
-): Promise<void> {
-  const workspace = await getActiveWorkspace();
-  const supabase = await createClient();
-  const { data: tasks } = await supabase
-    .from('preparation_tasks')
-    .select('id, position')
-    .eq('message_id', messageId)
+    .from('messages')
+    .update({ preparation_stage: stage })
+    .eq('id', messageId)
     .eq('workspace_id', workspace.id)
-    .order('position', { ascending: true });
-  if (!tasks) return;
-  const index = tasks.findIndex((t) => t.id === taskId);
-  const neighborIndex = direction === 'up' ? index - 1 : index + 1;
-  if (index < 0 || neighborIndex < 0 || neighborIndex >= tasks.length) return;
-  const current = tasks[index]!;
-  const neighbor = tasks[neighborIndex]!;
-  await supabase
-    .from('preparation_tasks')
-    .update({ position: neighbor.position })
-    .eq('id', current.id)
-    .eq('workspace_id', workspace.id);
-  await supabase
-    .from('preparation_tasks')
-    .update({ position: current.position })
-    .eq('id', neighbor.id)
-    .eq('workspace_id', workspace.id);
+    .is('deleted_at', null);
   revalidatePath(`/messages/${messageId}`);
-}
-
-/** タスクが無い Message（旧データ等）に種別テンプレートから生成する */
-export async function generateTasks(messageId: string): Promise<void> {
-  const workspace = await getActiveWorkspace();
-  const supabase = await createClient();
-  const [{ data: message }, { count }] = await Promise.all([
-    supabase
-      .from('messages')
-      .select('type')
-      .eq('id', messageId)
-      .eq('workspace_id', workspace.id)
-      .is('deleted_at', null)
-      .maybeSingle(),
-    supabase
-      .from('preparation_tasks')
-      .select('id', { count: 'exact', head: true })
-      .eq('message_id', messageId),
-  ]);
-  if (!message || (count ?? 0) > 0) return;
-  const rows = preparationTemplateFor(message.type).map((title, i) => ({
-    message_id: messageId,
-    workspace_id: workspace.id,
-    title,
-    position: i + 1,
-  }));
-  await supabase.from('preparation_tasks').insert(rows);
-  revalidatePath(`/messages/${messageId}`);
+  revalidatePath('/messages');
+  revalidatePath('/inbox');
   revalidatePath('/');
 }

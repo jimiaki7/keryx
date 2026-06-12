@@ -12,7 +12,9 @@ export default async function MessagesPage() {
   const supabase = await createClient();
   const { data: messages, error } = await supabase
     .from('messages')
-    .select('id, display_id, type, status, title, created_at, message_passages(display_text, role)')
+    .select(
+      'id, display_id, type, status, preparation_stage, title, created_at, message_passages(display_text, role)',
+    )
     .eq('workspace_id', workspace.id)
     .is('deleted_at', null)
     .order('updated_at', { ascending: false });

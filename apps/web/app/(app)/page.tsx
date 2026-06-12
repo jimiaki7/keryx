@@ -1,12 +1,11 @@
 import Link from 'next/link';
-import { computePreparationProgress } from '@keryx/domain';
+import { preparationStagePercent } from '@keryx/domain';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
-import { GATHERING_KIND_LABELS } from '@/lib/labels';
+import { GATHERING_KIND_LABELS, PREPARATION_STAGE_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
 import { MessageCreateForm } from './inbox/message-create-form';
-import { ProgressBar } from './messages/[id]/preparation-tasks';
 
 function formatTokyo(iso: string): string {
   return new Date(iso).toLocaleString('ja-JP', {
@@ -33,27 +32,17 @@ export default async function HomePage() {
   const nowIso = now.toISOString();
   const fourWeeksIso = new Date(now.getTime() + 28 * 86400000).toISOString();
 
-  const [{ data: upcoming }, { data: overdueTasks }] = await Promise.all([
-    supabase
-      .from('gatherings')
-      .select(
-        'id, title, kind, starts_at, venues(name), message_deliveries(speaker_name, messages(id, title, message_passages(display_text, role)))',
-      )
-      .eq('workspace_id', workspace.id)
-      .is('deleted_at', null)
-      .neq('status', 'canceled')
-      .gte('starts_at', nowIso)
-      .order('starts_at', { ascending: true })
-      .limit(20),
-    supabase
-      .from('preparation_tasks')
-      .select('id, title, due_at, messages!inner(id, title, deleted_at)')
-      .eq('workspace_id', workspace.id)
-      .in('status', ['todo', 'doing'])
-      .lt('due_at', nowIso)
-      .order('due_at', { ascending: true })
-      .limit(10),
-  ]);
+  const { data: upcoming } = await supabase
+    .from('gatherings')
+    .select(
+      'id, title, kind, starts_at, venues(name), message_deliveries(speaker_name, messages(id, title, preparation_stage, message_passages(display_text, role)))',
+    )
+    .eq('workspace_id', workspace.id)
+    .is('deleted_at', null)
+    .neq('status', 'canceled')
+    .gte('starts_at', nowIso)
+    .order('starts_at', { ascending: true })
+    .limit(20);
 
   const next = upcoming?.[0];
   const nextMessage = next?.message_deliveries[0]?.messages ?? null;
@@ -61,18 +50,7 @@ export default async function HomePage() {
     nextMessage?.message_passages.find((p) => p.role === 'primary') ??
     nextMessage?.message_passages[0];
 
-  // 次の Message の準備進捗
-  let nextProgress = null;
-  if (nextMessage) {
-    const { data: tasks } = await supabase
-      .from('preparation_tasks')
-      .select('status')
-      .eq('message_id', nextMessage.id);
-    if (tasks && tasks.length > 0) nextProgress = computePreparationProgress(tasks);
-  }
-
   const withinFourWeeks = (upcoming ?? []).filter((g) => g.starts_at <= fourWeeksIso);
-  const overdue = (overdueTasks ?? []).filter((t) => t.messages.deleted_at === null);
 
   return (
     <>
@@ -123,9 +101,28 @@ export default async function HomePage() {
                   </span>
                 ) : null}
               </div>
-              {nextProgress ? (
-                <div className="mt-3">
-                  <ProgressBar progress={nextProgress} />
+              {nextMessage ? (
+                <div className="mt-3 flex items-center gap-3">
+                  <span className="text-xs text-ink-muted">
+                    準備:{' '}
+                    {PREPARATION_STAGE_LABELS[nextMessage.preparation_stage] ??
+                      nextMessage.preparation_stage}
+                  </span>
+                  <div
+                    role="progressbar"
+                    aria-valuenow={preparationStagePercent(nextMessage.preparation_stage)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label="準備段階"
+                    className="h-1.5 w-40 overflow-hidden rounded-full bg-line"
+                  >
+                    <div
+                      className="h-full rounded-full bg-indigo-deep"
+                      style={{
+                        width: `${preparationStagePercent(nextMessage.preparation_stage)}%`,
+                      }}
+                    />
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -149,34 +146,6 @@ export default async function HomePage() {
           <h2 className="mb-2 text-sm font-medium text-ink">Quick Add — 説教の種を書き留める</h2>
           <MessageCreateForm />
         </section>
-
-        {overdue.length > 0 ? (
-          <section
-            aria-label="要確認"
-            className="rounded-lg border border-gold/40 bg-paper-raised p-4"
-          >
-            <h2 className="text-sm font-medium text-ink">要確認 — 期限を過ぎた準備タスク</h2>
-            <ul className="mt-2 divide-y divide-line">
-              {overdue.map((t) => (
-                <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
-                  <span className="text-red-800">{t.title}</span>
-                  <Link
-                    href={`/messages/${t.messages.id}`}
-                    className="text-ink-muted hover:text-indigo-deep hover:underline"
-                  >
-                    {t.messages.title || '（無題）'}
-                  </Link>
-                  {t.due_at ? (
-                    <time dateTime={t.due_at} className="text-xs text-ink-muted">
-                      期限:{' '}
-                      {new Date(t.due_at).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })}
-                    </time>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
 
         <section aria-label="今後4週間の予定">
           <h2 className="mb-2 text-sm font-medium text-ink">今後4週間</h2>

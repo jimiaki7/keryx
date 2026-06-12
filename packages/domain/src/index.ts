@@ -1,9 +1,10 @@
 export {
-  computePreparationProgress,
-  DEFAULT_PREPARATION_TEMPLATES,
-  preparationTemplateFor,
+  isPreparationStage,
+  PREPARATION_STAGES,
+  preparationStageIndex,
+  preparationStagePercent,
 } from './preparation';
-export type { PreparationProgress, PreparationStatus, PreparationTaskLike } from './preparation';
+export type { PreparationStage } from './preparation';
 export {
   addMonths,
   formatMonthJa,

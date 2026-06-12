@@ -6,12 +6,12 @@ export async function GET(): Promise<NextResponse> {
   if (ctx instanceof NextResponse) return ctx;
   const { supabase, workspace } = ctx;
 
-  const [messages, series, seriesMessages, gatherings, venues, deliveries, elements, tasks] =
+  const [messages, series, seriesMessages, gatherings, venues, deliveries, elements] =
     await Promise.all([
       supabase
         .from('messages')
         .select(
-          'id, display_id, type, status, title, central_message, summary, outline_markdown, notes_markdown, created_at, updated_at, message_passages(role, position, book_id, start_chapter, start_verse, end_chapter, end_verse, display_text)',
+          'id, display_id, type, status, preparation_stage, title, central_message, summary, outline_markdown, notes_markdown, created_at, updated_at, message_passages(role, position, book_id, start_chapter, start_verse, end_chapter, end_verse, display_text)',
         )
         .eq('workspace_id', workspace.id)
         .is('deleted_at', null)
@@ -49,23 +49,11 @@ export async function GET(): Promise<NextResponse> {
         )
         .eq('workspace_id', workspace.id)
         .order('position'),
-      supabase
-        .from('preparation_tasks')
-        .select('message_id, title, status, due_at, completed_at, notes, position')
-        .eq('workspace_id', workspace.id)
-        .order('position'),
     ]);
 
-  const failed = [
-    messages,
-    series,
-    seriesMessages,
-    gatherings,
-    venues,
-    deliveries,
-    elements,
-    tasks,
-  ].find((r) => r.error);
+  const failed = [messages, series, seriesMessages, gatherings, venues, deliveries, elements].find(
+    (r) => r.error,
+  );
   if (failed) {
     return NextResponse.json({ error: 'エクスポートに失敗しました。' }, { status: 500 });
   }
@@ -82,7 +70,6 @@ export async function GET(): Promise<NextResponse> {
     venues: venues.data,
     message_deliveries: deliveries.data,
     service_elements: elements.data,
-    preparation_tasks: tasks.data,
   };
 
   return attachment(
