@@ -23,7 +23,7 @@ export default async function SeriesPage() {
   return (
     <>
       <PageHeader
-        title="Messages"
+        title="メッセージ"
         description="説教・祈祷会奨励と、その連続講解シリーズをここで管理します。"
       />
       <div className="flex flex-col gap-6">
@@ -54,7 +54,7 @@ export default async function SeriesPage() {
                   <span className="rounded-full border border-line px-2 py-0.5 text-xs text-ink-muted">
                     {SERIES_STATUS_LABELS[s.status] ?? s.status}
                   </span>
-                  <span className="text-xs text-ink-muted">{s.series_messages.length} Message</span>
+                  <span className="text-xs text-ink-muted">{s.series_messages.length} 件</span>
                 </div>
                 {s.description ? (
                   <p className="mt-1 line-clamp-1 text-sm text-ink-muted">{s.description}</p>

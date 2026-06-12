@@ -15,7 +15,6 @@ const TYPE_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'inbox', label: 'Inbox' },
   { value: 'planned', label: '計画中' },
   { value: 'preparing', label: '準備中' },
   { value: 'ready', label: '準備完了' },
@@ -207,7 +206,7 @@ export function MessageDeleteButton({ messageId }: { messageId: string }) {
       action={softDeleteMessage}
       onSubmit={(e) => {
         if (
-          !window.confirm('この Message を削除しますか？（復元は今後のバージョンで対応します）')
+          !window.confirm('このメッセージを削除しますか？（復元は今後のバージョンで対応します）')
         ) {
           e.preventDefault();
         }

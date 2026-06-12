@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 const TABS = [
-  { key: 'list', href: '/messages', label: 'Message 一覧' },
+  { key: 'list', href: '/messages', label: 'メッセージ一覧' },
   { key: 'series', href: '/messages/series', label: 'シリーズ' },
 ] as const;
 

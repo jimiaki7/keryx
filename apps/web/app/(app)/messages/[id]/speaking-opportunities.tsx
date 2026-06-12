@@ -72,7 +72,7 @@ export function SpeakingOpportunities({
     <section aria-label="語る機会" className="rounded-lg border border-line bg-paper-raised p-4">
       <h2 className="text-sm font-medium text-ink">語る機会</h2>
       <p className="mt-1 text-xs text-ink-muted">
-        同じ Message を複数の日時・会場で語れます。原稿は共有され、実施履歴は別々に残ります。
+        同じメッセージを複数の日時・会場で語れます。原稿は共有され、実施履歴は別々に残ります。
       </p>
       {opportunities.length > 0 ? (
         <ul className="mt-2 divide-y divide-line">

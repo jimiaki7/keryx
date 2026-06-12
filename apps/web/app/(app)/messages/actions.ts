@@ -58,7 +58,7 @@ export async function createMessage(
       workspace_id: workspace.id,
       type,
       title: title || (range?.displayText ?? ''),
-      status: 'inbox',
+      status: 'planned',
     })
     .select('id')
     .single();

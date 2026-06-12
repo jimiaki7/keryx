@@ -84,7 +84,7 @@ export function GatheringCreateForm({ defaultStartsAt }: { defaultStartsAt?: str
         </button>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
-        Message は未定のままで保存できます。礼拝順序は作成後のプランナーで編集します。
+        メッセージは未定のままで保存できます。礼拝順序は作成後のプランナーで編集します。
       </p>
       {state.error ? (
         <div role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">

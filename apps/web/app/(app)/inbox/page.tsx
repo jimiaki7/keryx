@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-// Inbox は Messages のフィルタへ統合された（ナビ簡素化、2026-06-12）
+// Inbox は廃止された（ADR-0004。日付未定でも「計画中」として扱う）
 export default function InboxRedirect() {
-  redirect('/messages?status=inbox');
+  redirect('/messages');
 }

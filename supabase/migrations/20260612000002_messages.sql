@@ -76,8 +76,9 @@ create table public.messages (
   summary text not null default '',
   outline_markdown text not null default '',
   notes_markdown text not null default '',
-  status text not null default 'inbox'
-    check (status in ('inbox', 'planned', 'preparing', 'ready', 'completed', 'archived')),
+  -- Inbox 状態は廃止（ADR-0004）。日付未定でも「計画中」として扱う
+  status text not null default 'planned'
+    check (status in ('planned', 'preparing', 'ready', 'completed', 'archived')),
   source_links jsonb not null default '[]'::jsonb,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),

@@ -17,7 +17,6 @@ export const SERIES_STATUS_LABELS: Record<string, string> = {
 };
 
 export const MESSAGE_STATUS_LABELS: Record<string, string> = {
-  inbox: 'Inbox',
   planned: '計画中',
   preparing: '準備中',
   ready: '準備完了',

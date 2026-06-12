@@ -11,7 +11,7 @@ export type NavItem = {
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: '/', label: 'ホーム' },
   { href: '/calendar', label: 'カレンダー' },
-  { href: '/messages', label: 'Messages' },
+  { href: '/messages', label: 'メッセージ' },
   { href: '/settings', label: '設定' },
 ];
 

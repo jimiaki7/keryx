@@ -47,10 +47,10 @@ export function SeriesMessagesEditor({
 
   return (
     <section
-      aria-label="シリーズ内の Message"
+      aria-label="シリーズ内のメッセージ"
       className="rounded-lg border border-line bg-paper-raised p-4"
     >
-      <h2 className="text-sm font-medium text-ink">シリーズ内の Message</h2>
+      <h2 className="text-sm font-medium text-ink">シリーズ内のメッセージ</h2>
       {entries.length > 0 ? (
         <ol className="mt-2 divide-y divide-line">
           {entries.map((entry, i) => (
@@ -96,14 +96,14 @@ export function SeriesMessagesEditor({
         </ol>
       ) : (
         <p className="mt-2 text-sm text-ink-muted">
-          まだ Message がありません。下から追加できます（Message 自体は削除されません）。
+          まだメッセージがありません。下から追加できます（メッセージ自体は削除されません）。
         </p>
       )}
 
       {candidates.length > 0 ? (
         <form action={addAction} className="mt-3 flex flex-wrap items-center gap-2">
           <label htmlFor="series-add-message" className="sr-only">
-            追加する Message
+            追加するメッセージ
           </label>
           <select
             id="series-add-message"
@@ -113,7 +113,7 @@ export function SeriesMessagesEditor({
             className="min-w-48 flex-1 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
           >
             <option value="" disabled>
-              Message を選択…
+              メッセージを選択…
             </option>
             {candidates.map((m) => (
               <option key={m.id} value={m.id}>
@@ -130,7 +130,7 @@ export function SeriesMessagesEditor({
           </button>
         </form>
       ) : (
-        <p className="mt-3 text-xs text-ink-muted">追加できる Message がありません。</p>
+        <p className="mt-3 text-xs text-ink-muted">追加できるメッセージがありません。</p>
       )}
       {addState.error ? (
         <div role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-1.5 text-sm text-red-800">

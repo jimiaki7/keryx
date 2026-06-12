@@ -69,7 +69,7 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ i
         </Link>
         <h1 className="mt-1 text-2xl font-semibold text-indigo-deep">{series.name}</h1>
         <p className="mt-1 text-xs text-ink-muted">
-          {SERIES_STATUS_LABELS[series.status] ?? series.status} ・ {entries.length} Message
+          {SERIES_STATUS_LABELS[series.status] ?? series.status} ・ {entries.length} 件
         </p>
       </div>
       <div className="flex flex-col gap-5">

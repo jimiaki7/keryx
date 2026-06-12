@@ -43,10 +43,10 @@ export function DeliveriesEditor({
 
   return (
     <section
-      aria-label="この集会で語る Message"
+      aria-label="この集会で語るメッセージ"
       className="rounded-lg border border-line bg-paper-raised p-4"
     >
-      <h2 className="text-sm font-medium text-ink">この集会で語る Message</h2>
+      <h2 className="text-sm font-medium text-ink">この集会で語るメッセージ</h2>
       {deliveries.length > 0 ? (
         <ul className="mt-2 divide-y divide-line">
           {deliveries.map((d) => (
@@ -75,13 +75,15 @@ export function DeliveriesEditor({
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-sm text-ink-muted">Message は未定です（このまま保存できます）。</p>
+        <p className="mt-2 text-sm text-ink-muted">
+          メッセージは未定です（このまま保存できます）。
+        </p>
       )}
 
       {candidates.length > 0 ? (
         <form ref={formRef} action={formAction} className="mt-3 flex flex-wrap items-center gap-2">
           <label htmlFor="delivery-message" className="sr-only">
-            割り当てる Message
+            割り当てるメッセージ
           </label>
           <select
             id="delivery-message"
@@ -91,7 +93,7 @@ export function DeliveriesEditor({
             className="min-w-48 flex-1 rounded-md border border-line bg-paper px-3 py-1.5 text-sm"
           >
             <option value="" disabled>
-              Message を選択…
+              メッセージを選択…
             </option>
             {candidates.map((m) => (
               <option key={m.id} value={m.id}>
@@ -117,7 +119,7 @@ export function DeliveriesEditor({
           </button>
         </form>
       ) : (
-        <p className="mt-3 text-xs text-ink-muted">割り当てられる Message がありません。</p>
+        <p className="mt-3 text-xs text-ink-muted">割り当てられるメッセージがありません。</p>
       )}
       {state.error ? (
         <div role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-1.5 text-sm text-red-800">

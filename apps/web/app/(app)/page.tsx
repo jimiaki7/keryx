@@ -90,7 +90,7 @@ export default async function HomePage() {
                     )}
                   </>
                 ) : (
-                  <span className="text-gold">Message が未定です</span>
+                  <span className="text-gold">メッセージ未定です</span>
                 )}
                 {next.venues?.name ? (
                   <span className="text-xs text-ink-muted">{next.venues.name}</span>
@@ -170,7 +170,7 @@ export default async function HomePage() {
                     {m ? (
                       <span className="text-ink-muted">{m.title || '（無題）'}</span>
                     ) : (
-                      <span className="text-xs text-gold">Message 未定</span>
+                      <span className="text-xs text-gold">メッセージ未定</span>
                     )}
                   </li>
                 );

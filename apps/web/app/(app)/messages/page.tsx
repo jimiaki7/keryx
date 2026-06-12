@@ -9,9 +9,9 @@ import { MESSAGE_STATUS_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
 
-export const metadata: Metadata = { title: 'Messages' };
+export const metadata: Metadata = { title: 'メッセージ' };
 
-const FILTERS = ['all', 'inbox', 'planned', 'preparing', 'ready', 'completed', 'archived'];
+const FILTERS = ['all', 'planned', 'preparing', 'ready', 'completed', 'archived'];
 
 export default async function MessagesPage({
   searchParams,
@@ -37,7 +37,7 @@ export default async function MessagesPage({
   return (
     <>
       <PageHeader
-        title="Messages"
+        title="メッセージ"
         description="説教・祈祷会奨励と、その連続講解シリーズをここで管理します。"
       />
       <div className="flex flex-col gap-5">
@@ -75,8 +75,8 @@ export default async function MessagesPage({
           <EmptyState
             title={
               status === 'all'
-                ? 'Message はまだありません'
-                : `「${MESSAGE_STATUS_LABELS[status] ?? status}」の Message はありません`
+                ? 'メッセージはまだありません'
+                : `「${MESSAGE_STATUS_LABELS[status] ?? status}」のメッセージはありません`
             }
             description="上のフォームから、タイトルか聖書箇所だけで保存できます。"
           />

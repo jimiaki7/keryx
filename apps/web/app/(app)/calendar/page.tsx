@@ -225,7 +225,7 @@ export default async function CalendarPage({
                   {messageTitle ? (
                     <span className="text-ink-muted">{messageTitle}</span>
                   ) : (
-                    <span className="text-xs text-gold">Message 未定</span>
+                    <span className="text-xs text-gold">メッセージ未定</span>
                   )}
                 </li>
               );

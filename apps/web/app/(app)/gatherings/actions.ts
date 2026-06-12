@@ -173,7 +173,7 @@ export async function addDelivery(
 ): Promise<SimpleFormState> {
   const parsed = z
     .object({
-      message_id: z.uuid('割り当てる Message を選択してください。'),
+      message_id: z.uuid('割り当てるメッセージを選択してください。'),
       speaker_name: z.string().trim().max(100),
     })
     .safeParse({
@@ -195,7 +195,7 @@ export async function addDelivery(
     return {
       error:
         error.code === '23505'
-          ? 'この Message はすでに割り当てられています。'
+          ? 'このメッセージはすでに割り当てられています。'
           : '割り当てできませんでした。もう一度お試しください。',
     };
   }

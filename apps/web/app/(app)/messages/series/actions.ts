@@ -135,7 +135,7 @@ export async function addMessageToSeries(
   formData: FormData,
 ): Promise<SeriesMessageState> {
   const messageId = z.uuid().safeParse(formData.get('message_id'));
-  if (!messageId.success) return { error: '追加する Message を選択してください。' };
+  if (!messageId.success) return { error: '追加するメッセージを選択してください。' };
 
   const workspace = await getActiveWorkspace();
   const supabase = await createClient();
@@ -158,7 +158,7 @@ export async function addMessageToSeries(
     return {
       error:
         error.code === '23505'
-          ? 'この Message はすでにシリーズに追加されています。'
+          ? 'このメッセージはすでにシリーズに追加されています。'
           : '追加できませんでした。もう一度お試しください。',
     };
   }

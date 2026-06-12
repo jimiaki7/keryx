@@ -34,7 +34,7 @@ export function MessageCreateForm() {
       ref={formRef}
       action={formAction}
       className="rounded-lg border border-line bg-paper-raised p-4"
-      aria-label="Message を作成"
+      aria-label="メッセージを作成"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex flex-col gap-1">
@@ -103,7 +103,7 @@ export function MessageCreateForm() {
       ) : null}
       {state.ok ? (
         <p role="status" className="mt-2 text-sm text-indigo-deep">
-          Inbox に保存しました。
+          保存しました。
         </p>
       ) : null}
     </form>

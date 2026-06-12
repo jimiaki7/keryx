@@ -10,7 +10,7 @@ import { PassageEditor } from './passage-editor';
 import { PreparationStageControl } from './preparation-stage';
 import { SpeakingOpportunities, type OpportunityItem } from './speaking-opportunities';
 
-export const metadata: Metadata = { title: 'Message' };
+export const metadata: Metadata = { title: 'メッセージ' };
 
 export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -61,7 +61,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link href="/messages" className="text-sm text-ink-muted hover:text-ink">
-            ← Messages
+            ← メッセージ
           </Link>
           <h1 className="mt-1 text-2xl font-semibold text-indigo-deep">
             {message.title || '（無題）'}

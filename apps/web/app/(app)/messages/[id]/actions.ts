@@ -93,7 +93,7 @@ export async function updateMessage(
     return {
       conflict: true,
       error:
-        '他の画面でこの Message が更新されています。編集内容を控えたうえで、ページを再読み込みしてください。',
+        '他の画面でこのメッセージが更新されています。編集内容を控えたうえで、ページを再読み込みしてください。',
     };
   }
 
