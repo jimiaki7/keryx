@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/empty-state';
 import { MessageCreateForm } from '@/components/message-create-form';
 import { MessageList } from '@/components/message-list';
+import { MessagesTabs } from '@/components/messages-tabs';
 import { PageHeader } from '@/components/page-header';
 import { MESSAGE_STATUS_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
@@ -37,9 +38,10 @@ export default async function MessagesPage({
     <>
       <PageHeader
         title="Messages"
-        description="説教・祈祷会奨励など、語る内容をここで管理します。日付未定のものは Inbox に入ります。"
+        description="説教・祈祷会奨励と、その連続講解シリーズをここで管理します。"
       />
       <div className="flex flex-col gap-5">
+        <MessagesTabs active="list" />
         <MessageCreateForm />
 
         <nav aria-label="状態で絞り込み" className="flex flex-wrap gap-1">

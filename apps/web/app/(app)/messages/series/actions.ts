@@ -82,8 +82,8 @@ export async function createSeries(
   if (error || !data) {
     return { error: 'シリーズを作成できませんでした。もう一度お試しください。' };
   }
-  revalidatePath('/series');
-  redirect(`/series/${data.id}`);
+  revalidatePath('/messages/series');
+  redirect(`/messages/series/${data.id}`);
 }
 
 export async function updateSeries(
@@ -118,8 +118,8 @@ export async function updateSeries(
         '他の画面でこのシリーズが更新されています。編集内容を控えたうえで、ページを再読み込みしてください。',
     };
   }
-  revalidatePath(`/series/${id.data}`);
-  revalidatePath('/series');
+  revalidatePath(`/messages/series/${id.data}`);
+  revalidatePath('/messages/series');
   return { ok: true, nonce: Date.now(), version: data.version };
 }
 
@@ -162,7 +162,7 @@ export async function addMessageToSeries(
           : '追加できませんでした。もう一度お試しください。',
     };
   }
-  revalidatePath(`/series/${seriesId}`);
+  revalidatePath(`/messages/series/${seriesId}`);
   return { ok: true, nonce: Date.now() };
 }
 
@@ -175,7 +175,7 @@ export async function removeSeriesMessage(entryId: string, seriesId: string): Pr
     .delete()
     .eq('id', entryId)
     .eq('workspace_id', workspace.id);
-  revalidatePath(`/series/${seriesId}`);
+  revalidatePath(`/messages/series/${seriesId}`);
 }
 
 export async function moveSeriesMessage(
@@ -209,5 +209,5 @@ export async function moveSeriesMessage(
     .update({ position: current.position })
     .eq('id', neighbor.id)
     .eq('workspace_id', workspace.id);
-  revalidatePath(`/series/${seriesId}`);
+  revalidatePath(`/messages/series/${seriesId}`);
 }

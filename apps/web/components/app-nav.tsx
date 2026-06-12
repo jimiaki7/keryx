@@ -42,13 +42,6 @@ function NavIcon({ href }: { href: string }) {
           <path d="M14 2v6h6M9 13h6M9 17h6" />
         </svg>
       );
-    case '/series':
-      return (
-        <svg {...common}>
-          <path d="m12 3 9 5-9 5-9-5 9-5z" />
-          <path d="m3 13.5 9 5 9-5" />
-        </svg>
-      );
     case '/settings':
       return (
         <svg {...common}>
