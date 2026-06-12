@@ -143,6 +143,152 @@ export type Database = {
           },
         ]
       }
+      gatherings: {
+        Row: {
+          audience: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          display_id: string
+          ends_at: string | null
+          id: string
+          kind: string
+          notes: string
+          starts_at: string
+          status: string
+          timezone: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          venue_id: string | null
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          audience?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          display_id?: string
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          notes?: string
+          starts_at: string
+          status?: string
+          timezone?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          venue_id?: string | null
+          version?: number
+          workspace_id: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          display_id?: string
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          notes?: string
+          starts_at?: string
+          status?: string
+          timezone?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          venue_id?: string | null
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gatherings_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gatherings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_deliveries: {
+        Row: {
+          created_at: string
+          delivery_notes: string
+          gathering_id: string
+          id: string
+          message_id: string
+          position: number
+          speaker_member_id: string | null
+          speaker_name: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_notes?: string
+          gathering_id: string
+          id?: string
+          message_id: string
+          position?: number
+          speaker_member_id?: string | null
+          speaker_name?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_notes?: string
+          gathering_id?: string
+          id?: string
+          message_id?: string
+          position?: number
+          speaker_member_id?: string | null
+          speaker_name?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_deliveries_gathering_id_fkey"
+            columns: ["gathering_id"]
+            isOneToOne: false
+            referencedRelation: "gatherings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_deliveries_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_deliveries_speaker_member_id_fkey"
+            columns: ["speaker_member_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_deliveries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_passages: {
         Row: {
           book_id: string
@@ -224,6 +370,7 @@ export type Database = {
           metadata: Json
           notes_markdown: string
           outline_markdown: string
+          primary_series_id: string | null
           source_links: Json
           status: string
           summary: string
@@ -244,6 +391,7 @@ export type Database = {
           metadata?: Json
           notes_markdown?: string
           outline_markdown?: string
+          primary_series_id?: string | null
           source_links?: Json
           status?: string
           summary?: string
@@ -264,6 +412,7 @@ export type Database = {
           metadata?: Json
           notes_markdown?: string
           outline_markdown?: string
+          primary_series_id?: string | null
           source_links?: Json
           status?: string
           summary?: string
@@ -275,6 +424,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_primary_series_id_fkey"
+            columns: ["primary_series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_workspace_id_fkey"
             columns: ["workspace_id"]
@@ -304,6 +460,183 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      series: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string
+          ends_on: string | null
+          goal: string
+          id: string
+          name: string
+          primary_book_id: string | null
+          starts_on: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string
+          ends_on?: string | null
+          goal?: string
+          id?: string
+          name: string
+          primary_book_id?: string | null
+          starts_on?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string
+          ends_on?: string | null
+          goal?: string
+          id?: string
+          name?: string
+          primary_book_id?: string | null
+          starts_on?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "series_primary_book_id_fkey"
+            columns: ["primary_book_id"]
+            isOneToOne: false
+            referencedRelation: "bible_books"
+            referencedColumns: ["osis"]
+          },
+          {
+            foreignKeyName: "series_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      series_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          notes: string
+          planned_passage_text: string
+          position: number
+          series_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          notes?: string
+          planned_passage_text?: string
+          position?: number
+          series_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          notes?: string
+          planned_passage_text?: string
+          position?: number
+          series_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "series_messages_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "series_messages_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "series_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venues: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          notes: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          notes?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          notes?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venues_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_members: {
         Row: {

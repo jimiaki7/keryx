@@ -8,6 +8,14 @@ export const MESSAGE_TYPE_LABELS: Record<string, string> = {
   other: 'その他',
 };
 
+export const SERIES_STATUS_LABELS: Record<string, string> = {
+  planned: '計画中',
+  active: '進行中',
+  paused: '休止中',
+  completed: '完了',
+  archived: 'アーカイブ',
+};
+
 export const MESSAGE_STATUS_LABELS: Record<string, string> = {
   inbox: 'Inbox',
   planned: '計画中',

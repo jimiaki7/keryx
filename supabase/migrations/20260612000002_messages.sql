@@ -185,12 +185,18 @@ create policy message_passages_insert_writer on public.message_passages
     public.member_role(workspace_id) in ('owner', 'pastor')
     and exists (
       select 1 from public.messages m
-      where m.id = message_id and m.workspace_id = workspace_id
+      where m.id = message_id and m.workspace_id = message_passages.workspace_id
     )
   );
 create policy message_passages_update_writer on public.message_passages
   for update using (public.member_role(workspace_id) in ('owner', 'pastor'))
-  with check (public.member_role(workspace_id) in ('owner', 'pastor'));
+  with check (
+    public.member_role(workspace_id) in ('owner', 'pastor')
+    and exists (
+      select 1 from public.messages m
+      where m.id = message_id and m.workspace_id = message_passages.workspace_id
+    )
+  );
 create policy message_passages_delete_writer on public.message_passages
   for delete using (public.member_role(workspace_id) in ('owner', 'pastor'));
 
