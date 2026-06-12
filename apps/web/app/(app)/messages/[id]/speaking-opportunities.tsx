@@ -6,7 +6,6 @@ import type { KeyboardEvent } from 'react';
 import { GATHERING_KIND_LABELS } from '@/lib/labels';
 import {
   addSpeakingOpportunity,
-  assignMessageToGathering,
   removeSpeakingOpportunity,
   type OpportunityFormState,
 } from './actions';
@@ -24,13 +23,6 @@ export type OpportunityItem = {
     starts_at: string;
     venue_name: string | null;
   };
-};
-
-export type GatheringOption = {
-  id: string;
-  title: string;
-  kind: string;
-  starts_at: string;
 };
 
 const KIND_OPTIONS = Object.entries(GATHERING_KIND_LABELS).map(([value, label]) => ({
@@ -62,35 +54,25 @@ const inputClass = 'rounded-md border border-line bg-paper px-3 py-1.5 text-sm';
 export function SpeakingOpportunities({
   messageId,
   opportunities,
-  candidates,
 }: {
   messageId: string;
   opportunities: OpportunityItem[];
-  candidates: GatheringOption[];
 }) {
-  const [createState, createAction, createPending] = useActionState(
+  const [state, formAction, pending] = useActionState(
     addSpeakingOpportunity.bind(null, messageId),
     initialState,
   );
-  const [assignState, assignAction, assignPending] = useActionState(
-    assignMessageToGathering.bind(null, messageId),
-    initialState,
-  );
-  const createFormRef = useRef<HTMLFormElement>(null);
-  const assignFormRef = useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (createState.ok) createFormRef.current?.reset();
-  }, [createState.ok, createState.nonce]);
-  useEffect(() => {
-    if (assignState.ok) assignFormRef.current?.reset();
-  }, [assignState.ok, assignState.nonce]);
+    if (state.ok) formRef.current?.reset();
+  }, [state.ok, state.nonce]);
 
   return (
-    <section aria-label="礼拝予定" className="rounded-lg border border-line bg-paper-raised p-4">
-      <h2 className="text-sm font-medium text-ink">礼拝予定</h2>
+    <section aria-label="語る機会" className="rounded-lg border border-line bg-paper-raised p-4">
+      <h2 className="text-sm font-medium text-ink">語る機会</h2>
       <p className="mt-1 text-xs text-ink-muted">
-        このメッセージをいつ・どこで語るか。同じメッセージを複数の予定に割り当てられます。
+        このメッセージをいつ・どこで語るか。複数の機会を追加できます。
       </p>
       {opportunities.length > 0 ? (
         <ul className="mt-2 divide-y divide-line">
@@ -115,7 +97,7 @@ export function SpeakingOpportunities({
                 <button
                   type="submit"
                   formAction={() => removeSpeakingOpportunity(o.id, messageId)}
-                  aria-label="この予定への割り当てを外す"
+                  aria-label="この機会を外す"
                   className="rounded-md border border-line px-2 py-1.5 text-sm text-red-800 hover:bg-red-50"
                 >
                   外す
@@ -125,55 +107,10 @@ export function SpeakingOpportunities({
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-sm text-ink-muted">まだ礼拝予定が決まっていません。</p>
+        <p className="mt-2 text-sm text-ink-muted">まだ語る機会が決まっていません。</p>
       )}
 
-      {candidates.length > 0 ? (
-        <form
-          ref={assignFormRef}
-          action={assignAction}
-          className="mt-3 flex flex-wrap items-center gap-2"
-        >
-          <label htmlFor="assign-gathering" className="w-full text-xs font-medium text-ink-muted">
-            既存の予定に割り当てる
-          </label>
-          <select
-            id="assign-gathering"
-            name="gathering_id"
-            defaultValue=""
-            required
-            className={`${inputClass} min-w-48 flex-1`}
-          >
-            <option value="" disabled>
-              礼拝予定を選択…
-            </option>
-            {candidates.map((g) => (
-              <option key={g.id} value={g.id}>
-                {formatTokyo(g.starts_at)} {g.title || GATHERING_KIND_LABELS[g.kind] || g.kind}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            disabled={assignPending}
-            className="rounded-md bg-indigo-deep px-3 py-1.5 text-sm font-medium text-paper-raised hover:bg-indigo-soft disabled:opacity-50"
-          >
-            {assignPending ? '割り当て中…' : '割り当て'}
-          </button>
-        </form>
-      ) : null}
-      {assignState.error ? (
-        <div role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-1.5 text-sm text-red-800">
-          {assignState.error}
-        </div>
-      ) : null}
-
-      <form
-        ref={createFormRef}
-        action={createAction}
-        className="mt-3 flex flex-wrap items-end gap-2 border-t border-line pt-3"
-      >
-        <span className="w-full text-xs font-medium text-ink-muted">新しい礼拝予定を作成する</span>
+      <form ref={formRef} action={formAction} className="mt-3 flex flex-wrap items-end gap-2">
         <div className="flex flex-col gap-1">
           <label htmlFor="opp-starts" className="text-xs text-ink-muted">
             日時
@@ -214,15 +151,15 @@ export function SpeakingOpportunities({
         </div>
         <button
           type="submit"
-          disabled={createPending}
+          disabled={pending}
           className="rounded-md bg-indigo-deep px-3 py-1.5 text-sm font-medium text-paper-raised hover:bg-indigo-soft disabled:opacity-50"
         >
-          {createPending ? '作成中…' : '作成して割り当て'}
+          {pending ? '追加中…' : '追加'}
         </button>
       </form>
-      {createState.error ? (
+      {state.error ? (
         <div role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-1.5 text-sm text-red-800">
-          {createState.error}
+          {state.error}
         </div>
       ) : null}
     </section>

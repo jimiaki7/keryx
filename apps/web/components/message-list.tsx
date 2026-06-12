@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { duplicateMessage } from '@/app/(app)/messages/actions';
 import { MESSAGE_STATUS_LABELS, MESSAGE_TYPE_LABELS, PREPARATION_STAGE_LABELS } from '@/lib/labels';
 
 export type MessageListItem = {
@@ -29,6 +30,15 @@ export function MessageList({ messages }: { messages: MessageListItem[] }) {
               {primary ? (
                 <span className="text-sm text-indigo-soft">{primary.display_text}</span>
               ) : null}
+              <form action={duplicateMessage.bind(null, m.id)} className="ml-auto">
+                <button
+                  type="submit"
+                  aria-label={`「${m.title || '無題'}」を複製`}
+                  className="rounded-md border border-line px-2 py-1 text-xs text-ink-muted hover:bg-indigo-deep/5 hover:text-indigo-deep"
+                >
+                  複製
+                </button>
+              </form>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
               <span>{m.display_id}</span>
