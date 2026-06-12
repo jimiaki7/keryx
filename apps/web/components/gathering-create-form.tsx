@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { createGathering, type GatheringFormState } from './actions';
+import { createGathering, type GatheringFormState } from '@/app/(app)/gatherings/actions';
 
 const initialState: GatheringFormState = {};
 
@@ -84,7 +84,7 @@ export function GatheringCreateForm({ defaultStartsAt }: { defaultStartsAt?: str
         </button>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
-        Message は未定のままで保存できます。礼拝順序は作成後に編集します。
+        Message は未定のままで保存できます。礼拝順序は作成後のプランナーで編集します。
       </p>
       {state.error ? (
         <div role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">

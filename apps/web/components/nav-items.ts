@@ -4,20 +4,19 @@ export type NavItem = {
 };
 
 /**
- * グローバルナビゲーション（KERYX_PRODUCT_SPEC §7.1。分析は Phase 3 で追加）。
- * 礼拝予定は月間カレンダー（KX-017）実装までの暫定エントリ。実装後はカレンダーへ統合を検討。
+ * グローバルナビゲーション。Jimi のフィードバック（2026-06-12）により5項目へ簡素化:
+ * - 礼拝予定の一覧・作成はカレンダーへ統合（/gatherings/[id] プランナーは残る）
+ * - Inbox は Messages のフィルタへ統合（Quick Add はホームと Messages にある）
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: '/', label: 'ホーム' },
   { href: '/calendar', label: 'カレンダー' },
-  { href: '/gatherings', label: '礼拝予定' },
   { href: '/messages', label: 'Messages' },
   { href: '/series', label: 'シリーズ' },
-  { href: '/inbox', label: 'Inbox' },
   { href: '/settings', label: '設定' },
 ];
 
-/** モバイル下部ナビに出す項目（設定は上部バー、礼拝予定はカレンダーページ経由で開く） */
+/** モバイル下部ナビ（設定は上部バーのアイコンから） */
 export const BOTTOM_NAV_ITEMS: readonly NavItem[] = NAV_ITEMS.filter(
-  (item) => item.href !== '/settings' && item.href !== '/gatherings',
+  (item) => item.href !== '/settings',
 );

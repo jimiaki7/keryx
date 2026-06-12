@@ -89,8 +89,8 @@ export default async function GatheringPlannerPage({
   return (
     <>
       <div className="mb-6">
-        <Link href="/gatherings" className="text-sm text-ink-muted hover:text-ink">
-          ← 礼拝予定
+        <Link href="/calendar" className="text-sm text-ink-muted hover:text-ink">
+          ← カレンダー
         </Link>
         <h1 className="mt-1 text-2xl font-semibold text-indigo-deep">
           {gathering.title || GATHERING_KIND_LABELS[gathering.kind] || gathering.kind}

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { GATHERING_KIND_LABELS, PREPARATION_STAGE_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
-import { MessageCreateForm } from './inbox/message-create-form';
+import { MessageCreateForm } from '@/components/message-create-form';
 
 function formatTokyo(iso: string): string {
   return new Date(iso).toLocaleString('ja-JP', {

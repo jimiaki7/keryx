@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
-import { createMessage, type CreateMessageState } from './actions';
+import { createMessage, type CreateMessageState } from '@/app/(app)/messages/actions';
 
 const initialState: CreateMessageState = {};
 

@@ -35,13 +35,6 @@ function NavIcon({ href }: { href: string }) {
           <path d="M3 9.5h18M8 3v4M16 3v4" />
         </svg>
       );
-    case '/gatherings':
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3.5 2" />
-        </svg>
-      );
     case '/messages':
       return (
         <svg {...common}>
@@ -54,13 +47,6 @@ function NavIcon({ href }: { href: string }) {
         <svg {...common}>
           <path d="m12 3 9 5-9 5-9-5 9-5z" />
           <path d="m3 13.5 9 5 9-5" />
-        </svg>
-      );
-    case '/inbox':
-      return (
-        <svg {...common}>
-          <path d="M5 4h14l3 8v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7l3-8z" />
-          <path d="M2 12h6l2 3h4l2-3h6" />
         </svg>
       );
     case '/settings':

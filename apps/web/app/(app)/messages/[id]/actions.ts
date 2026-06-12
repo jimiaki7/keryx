@@ -99,7 +99,6 @@ export async function updateMessage(
 
   revalidatePath(`/messages/${id}`);
   revalidatePath('/messages');
-  revalidatePath('/inbox');
   return { ok: true, nonce: Date.now(), version: data.version };
 }
 
@@ -113,7 +112,6 @@ export async function softDeleteMessage(formData: FormData): Promise<void> {
     .eq('id', id)
     .eq('workspace_id', workspace.id);
   revalidatePath('/messages');
-  revalidatePath('/inbox');
   redirect('/messages');
 }
 
@@ -326,7 +324,7 @@ export async function addSpeakingOpportunity(
     return { error: '語る機会を関連付けられませんでした。もう一度お試しください。' };
   }
   revalidatePath(`/messages/${messageId}`);
-  revalidatePath('/gatherings');
+  revalidatePath('/calendar');
   return { ok: true, nonce: Date.now() };
 }
 
@@ -360,6 +358,5 @@ export async function setPreparationStage(messageId: string, stage: string): Pro
     .is('deleted_at', null);
   revalidatePath(`/messages/${messageId}`);
   revalidatePath('/messages');
-  revalidatePath('/inbox');
   revalidatePath('/');
 }

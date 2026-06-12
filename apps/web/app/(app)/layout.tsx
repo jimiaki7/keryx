@@ -1,6 +1,5 @@
 import { BottomNav, MobileTopBar, SidebarNav } from '@/components/app-nav';
 import { getActiveWorkspace } from '@/lib/workspace';
-import { signOut } from '@/app/(public)/login/actions';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // middleware が未ログインを /login へ誘導する。ここでは workspace を確定する
@@ -22,14 +21,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <p className="truncate px-3 pb-5 text-xs text-ink-muted">{workspace.name}</p>
         <SidebarNav />
-        <form action={signOut} className="mt-auto px-3">
-          <button
-            type="submit"
-            className="w-full rounded-md px-3 py-2 text-left text-sm text-ink-muted hover:bg-indigo-deep/5 hover:text-ink"
-          >
-            ログアウト
-          </button>
-        </form>
       </aside>
       <div className="flex min-h-dvh flex-1 flex-col">
         <MobileTopBar />

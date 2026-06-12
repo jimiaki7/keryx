@@ -9,8 +9,9 @@ import {
   tokyoDateOf,
   tokyoYearMonthOf,
 } from '@keryx/domain';
+import { GatheringCreateForm } from '@/components/gathering-create-form';
 import { PageHeader } from '@/components/page-header';
-import { GATHERING_KIND_LABELS } from '@/lib/labels';
+import { GATHERING_KIND_LABELS, GATHERING_STATUS_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
 
@@ -26,28 +27,55 @@ function tokyoTime(iso: string): string {
   });
 }
 
+function tokyoDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; date?: string }>;
 }) {
-  const { month: monthParam } = await searchParams;
+  const { month: monthParam, date: dateParam } = await searchParams;
   const today = tokyoDateOf(new Date().toISOString());
   const currentMonth = tokyoYearMonthOf(new Date());
   const month = monthParam && isValidYearMonth(monthParam) ? monthParam : currentMonth;
+  // 「＋」から渡された日付を作成フォームの初期値にする
+  const defaultStartsAt =
+    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? `${dateParam}T10:30` : undefined;
 
   const workspace = await getActiveWorkspace();
   const supabase = await createClient();
 
   const { start, end } = gridRange(month);
-  const { data: gatherings } = await supabase
-    .from('gatherings')
-    .select('id, title, kind, status, starts_at')
-    .eq('workspace_id', workspace.id)
-    .is('deleted_at', null)
-    .gte('starts_at', `${start}T00:00:00+09:00`)
-    .lte('starts_at', `${end}T23:59:59.999+09:00`)
-    .order('starts_at', { ascending: true });
+  const nowIso = new Date().toISOString();
+  const [{ data: gatherings }, { data: upcoming }] = await Promise.all([
+    supabase
+      .from('gatherings')
+      .select('id, title, kind, status, starts_at')
+      .eq('workspace_id', workspace.id)
+      .is('deleted_at', null)
+      .gte('starts_at', `${start}T00:00:00+09:00`)
+      .lte('starts_at', `${end}T23:59:59.999+09:00`)
+      .order('starts_at', { ascending: true }),
+    supabase
+      .from('gatherings')
+      .select(
+        'id, display_id, title, kind, status, starts_at, venues(name), message_deliveries(messages(title))',
+      )
+      .eq('workspace_id', workspace.id)
+      .is('deleted_at', null)
+      .gte('starts_at', nowIso)
+      .order('starts_at', { ascending: true })
+      .limit(12),
+  ]);
 
   const byDate = new Map<string, NonNullable<typeof gatherings>>();
   for (const g of gatherings ?? []) {
@@ -61,7 +89,7 @@ export default async function CalendarPage({
 
   return (
     <>
-      <PageHeader title="カレンダー" description="月間の礼拝予定を見渡します。" />
+      <PageHeader title="カレンダー" description="月間の礼拝予定の見渡しと作成を行います。" />
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <h2 className="text-lg font-medium text-indigo-deep">{formatMonthJa(month)}</h2>
         <nav aria-label="月の移動" className="flex gap-1">
@@ -84,12 +112,6 @@ export default async function CalendarPage({
             翌月 →
           </Link>
         </nav>
-        <Link
-          href="/gatherings"
-          className="ml-auto text-sm text-ink-muted hover:text-indigo-deep hover:underline"
-        >
-          リスト表示へ
-        </Link>
       </div>
 
       <div className="overflow-x-auto">
@@ -136,7 +158,7 @@ export default async function CalendarPage({
                           {dayNumber}
                         </span>
                         <Link
-                          href={`/gatherings?date=${day.date}`}
+                          href={`/calendar?month=${month}&date=${day.date}#new-gathering`}
                           aria-label={`${day.date} に礼拝予定を作成`}
                           className="rounded px-1.5 text-sm text-ink-muted opacity-0 hover:bg-indigo-deep/10 hover:text-indigo-deep focus:opacity-100 group-hover:opacity-100"
                         >
@@ -169,8 +191,52 @@ export default async function CalendarPage({
         </table>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
-        日付の「＋」から、その日の礼拝予定を作成できます。教会暦・祝日の表示は今後追加されます。
+        日付の「＋」からその日の予定を作成できます。教会暦・祝日の表示は今後追加されます。
       </p>
+
+      <section aria-label="礼拝予定を作成" id="new-gathering" className="mt-8 scroll-mt-4">
+        <h2 className="mb-2 text-sm font-medium text-ink">礼拝予定を作成</h2>
+        <GatheringCreateForm defaultStartsAt={defaultStartsAt} />
+      </section>
+
+      <section aria-label="今後の予定" className="mt-8">
+        <h2 className="mb-2 text-sm font-medium text-ink">今後の予定</h2>
+        {upcoming && upcoming.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {upcoming.map((g) => {
+              const messageTitle = g.message_deliveries[0]?.messages?.title;
+              return (
+                <li
+                  key={g.id}
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-lg border border-line bg-paper-raised px-4 py-2.5 text-sm"
+                >
+                  <time dateTime={g.starts_at} className="w-32 text-indigo-soft">
+                    {tokyoDateTime(g.starts_at)}
+                  </time>
+                  <Link
+                    href={`/gatherings/${g.id}`}
+                    className="font-medium text-ink hover:text-indigo-deep hover:underline"
+                  >
+                    {g.title || GATHERING_KIND_LABELS[g.kind] || g.kind}
+                  </Link>
+                  <span className="rounded-full border border-line px-2 py-0.5 text-xs text-ink-muted">
+                    {GATHERING_STATUS_LABELS[g.status] ?? g.status}
+                  </span>
+                  {messageTitle ? (
+                    <span className="text-ink-muted">{messageTitle}</span>
+                  ) : (
+                    <span className="text-xs text-gold">Message 未定</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="rounded-lg border border-dashed border-line bg-paper-raised px-4 py-6 text-center text-sm text-ink-muted">
+            今後の予定はありません。上のフォームから作成できます。
+          </p>
+        )}
+      </section>
     </>
   );
 }

@@ -89,7 +89,7 @@ export async function createMessage(
     }
   }
 
-  revalidatePath('/inbox');
+  revalidatePath('/messages');
   revalidatePath('/messages');
   return { ok: true, nonce: Date.now() };
 }

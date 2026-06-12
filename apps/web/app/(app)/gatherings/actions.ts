@@ -98,7 +98,7 @@ export async function createGathering(
   if (error || !data) {
     return { error: '礼拝予定を作成できませんでした。もう一度お試しください。' };
   }
-  revalidatePath('/gatherings');
+  revalidatePath('/calendar');
   redirect(`/gatherings/${data.id}`);
 }
 
@@ -158,7 +158,7 @@ export async function updateGathering(
     };
   }
   revalidatePath(`/gatherings/${id}`);
-  revalidatePath('/gatherings');
+  revalidatePath('/calendar');
   return { ok: true, nonce: Date.now(), version: data.version };
 }
 
