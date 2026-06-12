@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { GATHERING_KIND_LABELS, PREPARATION_STAGE_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
-import { MessageCreateForm } from '@/components/message-create-form';
+import { createDraftMessage } from './messages/actions';
 
 function formatTokyo(iso: string): string {
   return new Date(iso).toLocaleString('ja-JP', {
@@ -129,14 +129,9 @@ export default async function HomePage() {
           ) : (
             <EmptyState
               title="次の礼拝予定はまだありません"
-              description="下の Quick Add からメッセージを追加し、詳細ページで礼拝予定を割り当てると、次の主日・聖書箇所・準備の進み具合がここに表示されます。"
+              description="右下の「＋」からメッセージを追加し、詳細ページで礼拝予定を割り当てると、次の主日・聖書箇所・準備の進み具合がここに表示されます。"
             />
           )}
-        </section>
-
-        <section aria-label="Quick Add">
-          <h2 className="mb-2 text-sm font-medium text-ink">Quick Add — 説教の種を書き留める</h2>
-          <MessageCreateForm />
         </section>
 
         <section aria-label="今後4週間の予定">
@@ -175,6 +170,17 @@ export default async function HomePage() {
           )}
         </section>
       </div>
+
+      <form action={createDraftMessage}>
+        <button
+          type="submit"
+          aria-label="メッセージを追加"
+          title="メッセージを追加"
+          className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-deep text-3xl font-light text-paper-raised shadow-lg transition-colors hover:bg-indigo-soft md:bottom-8 md:right-8"
+        >
+          ＋
+        </button>
+      </form>
     </>
   );
 }
