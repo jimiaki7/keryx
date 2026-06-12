@@ -127,7 +127,8 @@ create table public.series_messages (
   series_id uuid not null references public.series (id) on delete cascade,
   message_id uuid not null references public.messages (id) on delete cascade,
   workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  position numeric not null default 1,
+  position numeric not null default 1
+    check (position > 0 and position < 'Infinity'::numeric),
   planned_passage_text text not null default '',
   notes text not null default '',
   created_at timestamptz not null default now(),
@@ -154,11 +155,15 @@ create policy series_messages_insert_writer on public.series_messages
     public.member_role(workspace_id) in ('owner', 'pastor')
     and exists (
       select 1 from public.series s
-      where s.id = series_id and s.workspace_id = series_messages.workspace_id
+      where s.id = series_id
+        and s.workspace_id = series_messages.workspace_id
+        and s.deleted_at is null
     )
     and exists (
       select 1 from public.messages m
-      where m.id = message_id and m.workspace_id = series_messages.workspace_id
+      where m.id = message_id
+        and m.workspace_id = series_messages.workspace_id
+        and m.deleted_at is null
     )
   );
 create policy series_messages_update_writer on public.series_messages
@@ -167,11 +172,15 @@ create policy series_messages_update_writer on public.series_messages
     public.member_role(workspace_id) in ('owner', 'pastor')
     and exists (
       select 1 from public.series s
-      where s.id = series_id and s.workspace_id = series_messages.workspace_id
+      where s.id = series_id
+        and s.workspace_id = series_messages.workspace_id
+        and s.deleted_at is null
     )
     and exists (
       select 1 from public.messages m
-      where m.id = message_id and m.workspace_id = series_messages.workspace_id
+      where m.id = message_id
+        and m.workspace_id = series_messages.workspace_id
+        and m.deleted_at is null
     )
   );
 create policy series_messages_delete_writer on public.series_messages
@@ -302,7 +311,8 @@ create table public.message_deliveries (
   workspace_id uuid not null references public.workspaces (id) on delete cascade,
   speaker_member_id uuid references public.workspace_members (id) on delete set null,
   speaker_name text not null default '',
-  position numeric not null default 1,
+  position numeric not null default 1
+    check (position > 0 and position < 'Infinity'::numeric),
   delivery_notes text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -328,11 +338,15 @@ create policy message_deliveries_insert_planner on public.message_deliveries
     public.member_role(workspace_id) in ('owner', 'pastor', 'planner')
     and exists (
       select 1 from public.gatherings g
-      where g.id = gathering_id and g.workspace_id = message_deliveries.workspace_id
+      where g.id = gathering_id
+        and g.workspace_id = message_deliveries.workspace_id
+        and g.deleted_at is null
     )
     and exists (
       select 1 from public.messages m
-      where m.id = message_id and m.workspace_id = message_deliveries.workspace_id
+      where m.id = message_id
+        and m.workspace_id = message_deliveries.workspace_id
+        and m.deleted_at is null
     )
   );
 create policy message_deliveries_update_planner on public.message_deliveries
@@ -341,11 +355,15 @@ create policy message_deliveries_update_planner on public.message_deliveries
     public.member_role(workspace_id) in ('owner', 'pastor', 'planner')
     and exists (
       select 1 from public.gatherings g
-      where g.id = gathering_id and g.workspace_id = message_deliveries.workspace_id
+      where g.id = gathering_id
+        and g.workspace_id = message_deliveries.workspace_id
+        and g.deleted_at is null
     )
     and exists (
       select 1 from public.messages m
-      where m.id = message_id and m.workspace_id = message_deliveries.workspace_id
+      where m.id = message_id
+        and m.workspace_id = message_deliveries.workspace_id
+        and m.deleted_at is null
     )
   );
 create policy message_deliveries_delete_planner on public.message_deliveries

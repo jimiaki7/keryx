@@ -9,8 +9,16 @@ export default function CalendarPage() {
     <>
       <PageHeader title="カレンダー" description="月間・年間の礼拝予定と教会暦を見渡します。" />
       <EmptyState
-        title="カレンダーは準備中です"
-        description="礼拝予定（Gathering）を登録できるようになると、ここに月間カレンダーが表示されます。"
+        title="月間カレンダーは準備中です"
+        description="それまでの間、礼拝予定はリスト表示で確認・作成できます。"
+        action={
+          <a
+            href="/gatherings"
+            className="inline-block rounded-md bg-indigo-deep px-4 py-2 text-sm font-medium text-paper-raised hover:bg-indigo-soft"
+          >
+            礼拝予定の一覧へ
+          </a>
+        }
       />
     </>
   );

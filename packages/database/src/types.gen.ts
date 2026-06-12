@@ -591,6 +591,69 @@ export type Database = {
           },
         ]
       }
+      service_elements: {
+        Row: {
+          assignee: string
+          content: string
+          created_at: string
+          duration_minutes: number | null
+          gathering_id: string
+          id: string
+          metadata: Json
+          position: number
+          reference: string
+          title: string
+          type: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assignee?: string
+          content?: string
+          created_at?: string
+          duration_minutes?: number | null
+          gathering_id: string
+          id?: string
+          metadata?: Json
+          position?: number
+          reference?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assignee?: string
+          content?: string
+          created_at?: string
+          duration_minutes?: number | null
+          gathering_id?: string
+          id?: string
+          metadata?: Json
+          position?: number
+          reference?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_elements_gathering_id_fkey"
+            columns: ["gathering_id"]
+            isOneToOne: false
+            referencedRelation: "gatherings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_elements_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           created_at: string

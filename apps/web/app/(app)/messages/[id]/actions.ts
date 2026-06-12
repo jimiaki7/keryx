@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { parsePassage } from '@keryx/scripture';
 import { createClient } from '@/lib/supabase/server';
+import { findOrCreateVenue } from '@/lib/venues';
 import { getActiveWorkspace } from '@/lib/workspace';
 
 export type UpdateMessageState = {
@@ -259,6 +260,85 @@ export async function movePassage(
     .from('message_passages')
     .update({ position: current.position })
     .eq('id', neighbor.id)
+    .eq('workspace_id', workspace.id);
+  revalidatePath(`/messages/${messageId}`);
+}
+
+// ---------------------------------------------------------------------------
+// 語る機会（Gathering を作成して Delivery で関連付ける。KX-012）
+// ---------------------------------------------------------------------------
+
+export type OpportunityFormState = { ok?: boolean; nonce?: number; error?: string };
+
+const opportunitySchema = z.object({
+  starts_at_local: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, '日時を入力してください。'),
+  kind: z.enum(['sunday_worship', 'prayer_meeting', 'special_service', 'chapel', 'other']),
+  venue_name: z.string().trim().max(100),
+  speaker_name: z.string().trim().max(100),
+});
+
+export async function addSpeakingOpportunity(
+  messageId: string,
+  _prev: OpportunityFormState,
+  formData: FormData,
+): Promise<OpportunityFormState> {
+  const parsed = opportunitySchema.safeParse({
+    starts_at_local: formData.get('starts_at_local'),
+    kind: formData.get('kind'),
+    venue_name: formData.get('venue_name') ?? '',
+    speaker_name: formData.get('speaker_name') ?? '',
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? '入力内容をご確認ください。' };
+  }
+  const workspace = await getActiveWorkspace();
+  const supabase = await createClient();
+  const venueId = await findOrCreateVenue(supabase, workspace.id, parsed.data.venue_name);
+
+  const { data: gathering, error: gatheringError } = await supabase
+    .from('gatherings')
+    .insert({
+      workspace_id: workspace.id,
+      kind: parsed.data.kind,
+      starts_at: `${parsed.data.starts_at_local}:00+09:00`,
+      timezone: 'Asia/Tokyo',
+      venue_id: venueId,
+    })
+    .select('id')
+    .single();
+  if (gatheringError || !gathering) {
+    return { error: '語る機会を作成できませんでした。もう一度お試しください。' };
+  }
+
+  const { error: deliveryError } = await supabase.from('message_deliveries').insert({
+    message_id: messageId,
+    gathering_id: gathering.id,
+    workspace_id: workspace.id,
+    speaker_name: parsed.data.speaker_name,
+  });
+  if (deliveryError) {
+    // Delivery に失敗した場合は作成した Gathering を残さない
+    await supabase
+      .from('gatherings')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', gathering.id);
+    return { error: '語る機会を関連付けられませんでした。もう一度お試しください。' };
+  }
+  revalidatePath(`/messages/${messageId}`);
+  revalidatePath('/gatherings');
+  return { ok: true, nonce: Date.now() };
+}
+
+export async function removeSpeakingOpportunity(
+  deliveryId: string,
+  messageId: string,
+): Promise<void> {
+  const workspace = await getActiveWorkspace();
+  const supabase = await createClient();
+  await supabase
+    .from('message_deliveries')
+    .delete()
+    .eq('id', deliveryId)
     .eq('workspace_id', workspace.id);
   revalidatePath(`/messages/${messageId}`);
 }

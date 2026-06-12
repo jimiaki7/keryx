@@ -154,7 +154,9 @@ create table public.message_passages (
   message_id uuid not null references public.messages (id) on delete cascade,
   workspace_id uuid not null references public.workspaces (id) on delete cascade,
   role text not null default 'primary' check (role in ('primary', 'supporting')),
-  position numeric not null default 1,
+  -- NaN/Infinity/負数を拒否する（NaN は max(position)+1 や中間挿入を恒久的に破壊するため）
+  position numeric not null default 1
+    check (position > 0 and position < 'Infinity'::numeric),
   book_id text not null references public.bible_books (osis),
   start_chapter smallint not null check (start_chapter >= 1),
   start_verse smallint check (start_verse >= 1),
@@ -185,7 +187,9 @@ create policy message_passages_insert_writer on public.message_passages
     public.member_role(workspace_id) in ('owner', 'pastor')
     and exists (
       select 1 from public.messages m
-      where m.id = message_id and m.workspace_id = message_passages.workspace_id
+      where m.id = message_id
+        and m.workspace_id = message_passages.workspace_id
+        and m.deleted_at is null
     )
   );
 create policy message_passages_update_writer on public.message_passages
@@ -194,7 +198,9 @@ create policy message_passages_update_writer on public.message_passages
     public.member_role(workspace_id) in ('owner', 'pastor')
     and exists (
       select 1 from public.messages m
-      where m.id = message_id and m.workspace_id = message_passages.workspace_id
+      where m.id = message_id
+        and m.workspace_id = message_passages.workspace_id
+        and m.deleted_at is null
     )
   );
 create policy message_passages_delete_writer on public.message_passages

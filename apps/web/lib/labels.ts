@@ -24,3 +24,41 @@ export const MESSAGE_STATUS_LABELS: Record<string, string> = {
   completed: '完了',
   archived: 'アーカイブ',
 };
+
+export const GATHERING_KIND_LABELS: Record<string, string> = {
+  sunday_worship: '主日礼拝',
+  prayer_meeting: '祈祷会',
+  special_service: '特別礼拝',
+  chapel: 'チャペル',
+  other: 'その他',
+};
+
+export const GATHERING_STATUS_LABELS: Record<string, string> = {
+  draft: '下書き',
+  scheduled: '予定',
+  completed: '実施済み',
+  canceled: '中止',
+};
+
+export const SERVICE_ELEMENT_TYPE_LABELS: Record<string, string> = {
+  call_to_worship: '招詞',
+  hymn: '賛美',
+  prayer: '祈り',
+  responsive_reading: '聖書交読',
+  scripture_reading: '聖書朗読',
+  message: '説教',
+  offering: '献金',
+  ceremony: '式典',
+  doxology: '頌栄',
+  benediction: '祝祷',
+  custom: 'その他',
+};
+
+export const CEREMONY_TYPE_LABELS: Record<string, string> = {
+  communion: '聖餐式',
+  baptism: '洗礼式',
+  transfer: '転入会式',
+  ordination: '任職式',
+  memorial: '召天者記念',
+  other: 'その他',
+};
