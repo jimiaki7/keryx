@@ -128,16 +128,8 @@ export default async function HomePage() {
             </div>
           ) : (
             <EmptyState
-              title="次の Gathering はまだありません"
-              description="礼拝予定を登録すると、次の主日・聖書箇所・準備の進み具合がここに表示されます。"
-              action={
-                <Link
-                  href="/gatherings"
-                  className="inline-block rounded-md bg-indigo-deep px-4 py-2 text-sm font-medium text-paper-raised hover:bg-indigo-soft"
-                >
-                  礼拝予定を作成
-                </Link>
-              }
+              title="次の礼拝予定はまだありません"
+              description="下の Quick Add からメッセージを追加し、詳細ページで礼拝予定を割り当てると、次の主日・聖書箇所・準備の進み具合がここに表示されます。"
             />
           )}
         </section>

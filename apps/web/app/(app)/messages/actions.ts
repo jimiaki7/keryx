@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { parsePassage } from '@keryx/scripture';
 import { createClient } from '@/lib/supabase/server';
@@ -91,5 +92,22 @@ export async function createMessage(
 
   revalidatePath('/messages');
   revalidatePath('/messages');
-  return { ok: true, nonce: Date.now() };
+  // 保存後すぐに詳細入力へ移る（Jimi のフィードバック 2026-06-12）
+  redirect(`/messages/${message.id}`);
+}
+
+/** 「新規作成」: 空のメッセージを作成して詳細ページで全項目を入力する */
+export async function createDraftMessage(): Promise<void> {
+  const workspace = await getActiveWorkspace();
+  const supabase = await createClient();
+  const { data: message, error } = await supabase
+    .from('messages')
+    .insert({ workspace_id: workspace.id, type: 'sermon', status: 'planned' })
+    .select('id')
+    .single();
+  if (error || !message) {
+    throw new Error('メッセージを作成できませんでした。');
+  }
+  revalidatePath('/messages');
+  redirect(`/messages/${message.id}`);
 }

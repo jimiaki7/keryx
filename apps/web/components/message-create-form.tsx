@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { createMessage, type CreateMessageState } from '@/app/(app)/messages/actions';
 
@@ -23,15 +23,8 @@ function preventImeSubmit(e: KeyboardEvent<HTMLInputElement>) {
 
 export function MessageCreateForm() {
   const [state, formAction, pending] = useActionState(createMessage, initialState);
-  const formRef = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    if (state.ok) formRef.current?.reset();
-  }, [state.ok, state.nonce]);
-
   return (
     <form
-      ref={formRef}
       action={formAction}
       className="rounded-lg border border-line bg-paper-raised p-4"
       aria-label="メッセージを作成"
@@ -87,11 +80,11 @@ export function MessageCreateForm() {
           disabled={pending}
           className="rounded-md bg-indigo-deep px-4 py-2 text-sm font-medium text-paper-raised hover:bg-indigo-soft disabled:opacity-50"
         >
-          {pending ? '保存中…' : '保存'}
+          {pending ? '作成中…' : '追加'}
         </button>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
-        タイトルか聖書箇所のどちらかだけで保存できます。日付は後から割り当てられます。
+        タイトルか聖書箇所のどちらかだけで追加でき、すぐに詳細の入力へ移ります。
       </p>
       {state.error ? (
         <div role="alert" className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -100,11 +93,6 @@ export function MessageCreateForm() {
             <span className="block text-xs">候補: {state.suggestions.join('、')}</span>
           ) : null}
         </div>
-      ) : null}
-      {state.ok ? (
-        <p role="status" className="mt-2 text-sm text-indigo-deep">
-          保存しました。
-        </p>
       ) : null}
     </form>
   );

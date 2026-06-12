@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { EmptyState } from '@/components/empty-state';
-import { MessageCreateForm } from '@/components/message-create-form';
+import { createDraftMessage } from './actions';
 import { MessageList } from '@/components/message-list';
 import { MessagesTabs } from '@/components/messages-tabs';
 import { PageHeader } from '@/components/page-header';
@@ -42,7 +42,14 @@ export default async function MessagesPage({
       />
       <div className="flex flex-col gap-5">
         <MessagesTabs active="list" />
-        <MessageCreateForm />
+        <form action={createDraftMessage}>
+          <button
+            type="submit"
+            className="rounded-md bg-indigo-deep px-4 py-2 text-sm font-medium text-paper-raised hover:bg-indigo-soft"
+          >
+            ＋ 新規作成
+          </button>
+        </form>
 
         <nav aria-label="状態で絞り込み" className="flex flex-wrap gap-1">
           {FILTERS.map((f) => {
@@ -78,7 +85,7 @@ export default async function MessagesPage({
                 ? 'メッセージはまだありません'
                 : `「${MESSAGE_STATUS_LABELS[status] ?? status}」のメッセージはありません`
             }
-            description="上のフォームから、タイトルか聖書箇所だけで保存できます。"
+            description="「新規作成」から詳細ページで入力できます。ホームの Quick Add も使えます。"
           />
         )}
       </div>

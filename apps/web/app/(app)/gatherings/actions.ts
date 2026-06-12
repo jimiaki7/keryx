@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { serviceTemplateFor } from '@/lib/service-templates';
@@ -58,49 +57,6 @@ function toTokyoTimestamp(local: string): string {
 // ---------------------------------------------------------------------------
 // Gathering 作成・更新
 // ---------------------------------------------------------------------------
-
-const createGatheringSchema = z.object({
-  title: z.string().trim().max(100),
-  kind: z.enum(GATHERING_KINDS),
-  starts_at_local: z.string().regex(LOCAL_DATETIME, '日時を入力してください。'),
-  venue_name: z.string().trim().max(100),
-});
-
-export async function createGathering(
-  _prev: GatheringFormState,
-  formData: FormData,
-): Promise<GatheringFormState> {
-  const parsed = createGatheringSchema.safeParse({
-    title: formData.get('title') ?? '',
-    kind: formData.get('kind'),
-    starts_at_local: formData.get('starts_at_local'),
-    venue_name: formData.get('venue_name') ?? '',
-  });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? '入力内容をご確認ください。' };
-  }
-  const workspace = await getActiveWorkspace();
-  const supabase = await createClient();
-  const venueId = await findOrCreateVenue(supabase, workspace.id, parsed.data.venue_name);
-
-  const { data, error } = await supabase
-    .from('gatherings')
-    .insert({
-      workspace_id: workspace.id,
-      title: parsed.data.title,
-      kind: parsed.data.kind,
-      starts_at: toTokyoTimestamp(parsed.data.starts_at_local),
-      timezone: 'Asia/Tokyo',
-      venue_id: venueId,
-    })
-    .select('id')
-    .single();
-  if (error || !data) {
-    return { error: '礼拝予定を作成できませんでした。もう一度お試しください。' };
-  }
-  revalidatePath('/calendar');
-  redirect(`/gatherings/${data.id}`);
-}
 
 const updateGatheringSchema = z.object({
   id: z.uuid(),

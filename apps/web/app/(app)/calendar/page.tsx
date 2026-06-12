@@ -9,7 +9,6 @@ import {
   tokyoDateOf,
   tokyoYearMonthOf,
 } from '@keryx/domain';
-import { GatheringCreateForm } from '@/components/gathering-create-form';
 import { PageHeader } from '@/components/page-header';
 import { GATHERING_KIND_LABELS, GATHERING_STATUS_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
@@ -41,15 +40,12 @@ function tokyoDateTime(iso: string): string {
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; date?: string }>;
+  searchParams: Promise<{ month?: string }>;
 }) {
-  const { month: monthParam, date: dateParam } = await searchParams;
+  const { month: monthParam } = await searchParams;
   const today = tokyoDateOf(new Date().toISOString());
   const currentMonth = tokyoYearMonthOf(new Date());
   const month = monthParam && isValidYearMonth(monthParam) ? monthParam : currentMonth;
-  // 「＋」から渡された日付を作成フォームの初期値にする
-  const defaultStartsAt =
-    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? `${dateParam}T10:30` : undefined;
 
   const workspace = await getActiveWorkspace();
   const supabase = await createClient();
@@ -145,26 +141,17 @@ export default async function CalendarPage({
                         day.inMonth ? 'bg-paper-raised' : 'bg-paper text-ink-muted'
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <span
-                          className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                            isToday
-                              ? 'bg-indigo-deep font-medium text-paper-raised'
-                              : day.inMonth
-                                ? 'text-ink'
-                                : 'text-ink-muted'
-                          }`}
-                        >
-                          {dayNumber}
-                        </span>
-                        <Link
-                          href={`/calendar?month=${month}&date=${day.date}#new-gathering`}
-                          aria-label={`${day.date} に礼拝予定を作成`}
-                          className="rounded px-1.5 text-sm text-ink-muted opacity-0 hover:bg-indigo-deep/10 hover:text-indigo-deep focus:opacity-100 group-hover:opacity-100"
-                        >
-                          ＋
-                        </Link>
-                      </div>
+                      <span
+                        className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                          isToday
+                            ? 'bg-indigo-deep font-medium text-paper-raised'
+                            : day.inMonth
+                              ? 'text-ink'
+                              : 'text-ink-muted'
+                        }`}
+                      >
+                        {dayNumber}
+                      </span>
                       <ul className="mt-0.5 flex flex-col gap-0.5">
                         {items.map((g) => (
                           <li key={g.id}>
@@ -191,13 +178,8 @@ export default async function CalendarPage({
         </table>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
-        日付の「＋」からその日の予定を作成できます。教会暦・祝日の表示は今後追加されます。
+        礼拝予定はメッセージ詳細の「礼拝予定」から作成・割り当てできます。教会暦・祝日の表示は今後追加されます。
       </p>
-
-      <section aria-label="礼拝予定を作成" id="new-gathering" className="mt-8 scroll-mt-4">
-        <h2 className="mb-2 text-sm font-medium text-ink">礼拝予定を作成</h2>
-        <GatheringCreateForm defaultStartsAt={defaultStartsAt} />
-      </section>
 
       <section aria-label="今後の予定" className="mt-8">
         <h2 className="mb-2 text-sm font-medium text-ink">今後の予定</h2>
@@ -233,7 +215,7 @@ export default async function CalendarPage({
           </ul>
         ) : (
           <p className="rounded-lg border border-dashed border-line bg-paper-raised px-4 py-6 text-center text-sm text-ink-muted">
-            今後の予定はありません。上のフォームから作成できます。
+            今後の予定はありません。メッセージ詳細の「礼拝予定」から作成できます。
           </p>
         )}
       </section>
