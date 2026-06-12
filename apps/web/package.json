@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@keryx/database": "workspace:^",
+    "@keryx/domain": "workspace:^",
     "@keryx/scripture": "workspace:*",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1",

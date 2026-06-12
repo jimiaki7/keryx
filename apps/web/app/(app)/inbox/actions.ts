@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { preparationTemplateFor } from '@keryx/domain';
 import { parsePassage } from '@keryx/scripture';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
@@ -88,6 +89,16 @@ export async function createMessage(
       return { error: '聖書箇所を保存できませんでした。もう一度お試しください。' };
     }
   }
+
+  // 種別に応じた準備タスクを生成する（KX-015。失敗しても Message 作成自体は成立させ、
+  // 詳細画面の「準備タスクを生成」から再生成できる）
+  const taskRows = preparationTemplateFor(type).map((title, i) => ({
+    message_id: message.id,
+    workspace_id: workspace.id,
+    title,
+    position: i + 1,
+  }));
+  await supabase.from('preparation_tasks').insert(taskRows);
 
   revalidatePath('/inbox');
   revalidatePath('/messages');

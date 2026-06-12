@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
 import { MessageDeleteButton, MessageEditor } from './message-editor';
 import { PassageEditor } from './passage-editor';
+import { computePreparationProgress } from '@keryx/domain';
+import { PreparationTasks, type TaskItem } from './preparation-tasks';
 import { SpeakingOpportunities, type OpportunityItem } from './speaking-opportunities';
 
 export const metadata: Metadata = { title: 'Message' };
@@ -39,6 +41,28 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
     )
     .eq('message_id', message.id)
     .order('created_at', { ascending: true });
+
+  const { data: tasksRaw } = await supabase
+    .from('preparation_tasks')
+    .select('id, title, status, due_at, notes')
+    .eq('message_id', message.id)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  const now = new Date().getTime();
+  const tokyoDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' });
+  const tasks: TaskItem[] = (tasksRaw ?? []).map((t) => ({
+    id: t.id,
+    title: t.title,
+    status: t.status,
+    due_on: t.due_at ? tokyoDate.format(new Date(t.due_at)) : '',
+    overdue:
+      t.due_at != null &&
+      new Date(t.due_at).getTime() < now &&
+      (t.status === 'todo' || t.status === 'doing'),
+    notes: t.notes,
+  }));
+  const progress = computePreparationProgress(tasks);
 
   const opportunities: OpportunityItem[] = (deliveriesRaw ?? [])
     .filter((d) => d.gatherings.deleted_at === null)
@@ -73,6 +97,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
       </div>
       <div className="flex flex-col gap-5">
         <PassageEditor messageId={message.id} passages={passages} />
+        <PreparationTasks messageId={message.id} tasks={tasks} progress={progress} />
         <SpeakingOpportunities messageId={message.id} opportunities={opportunities} />
         <MessageEditor message={message} />
       </div>

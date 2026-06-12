@@ -32,6 +32,9 @@ importers:
       '@keryx/database':
         specifier: workspace:^
         version: link:../../packages/database
+      '@keryx/domain':
+        specifier: workspace:^
+        version: link:../../packages/domain
       '@keryx/scripture':
         specifier: workspace:*
         version: link:../../packages/scripture
@@ -81,6 +84,15 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+
+  packages/domain:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.6(@types/node@22.19.21)(jiti@2.7.0)(lightningcss@1.32.0)
 
   packages/scripture:
     devDependencies:

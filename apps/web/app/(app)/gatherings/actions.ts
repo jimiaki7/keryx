@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { serviceTemplateFor } from '@/lib/service-templates';
 import { findOrCreateVenue } from '@/lib/venues';
 import { getActiveWorkspace } from '@/lib/workspace';
 
@@ -363,4 +364,66 @@ export async function moveElement(
     .eq('id', neighbor.id)
     .eq('workspace_id', workspace.id);
   revalidatePath(`/gatherings/${gatheringId}`);
+}
+
+// ---------------------------------------------------------------------------
+// 礼拝テンプレート適用（KX-014）
+// ---------------------------------------------------------------------------
+
+export async function applyServiceTemplate(
+  gatheringId: string,
+  _prev: SimpleFormState,
+  formData: FormData,
+): Promise<SimpleFormState> {
+  const key = z.string().safeParse(formData.get('template'));
+  const template = key.success ? serviceTemplateFor(key.data) : undefined;
+  if (!template) return { error: 'テンプレートを選択してください。' };
+
+  const workspace = await getActiveWorkspace();
+  const supabase = await createClient();
+
+  // 適用は既存要素の置き換え。確認はクライアント側ダイアログ（既存要素がある場合）で行う。
+  // データを失わないため「先に新要素を挿入し、成功した場合だけ旧要素を削除する」順序にする
+  // （挿入が失敗しても既存の礼拝順序はそのまま残る）。
+  const { data: oldRows, error: fetchError } = await supabase
+    .from('service_elements')
+    .select('id, position')
+    .eq('gathering_id', gatheringId)
+    .eq('workspace_id', workspace.id);
+  if (fetchError) {
+    return { error: 'テンプレートを適用できませんでした。もう一度お試しください。' };
+  }
+
+  const basePosition =
+    oldRows && oldRows.length > 0 ? Math.max(...oldRows.map((r) => r.position)) : 0;
+  const rows = template.elements.map((el, i) => ({
+    gathering_id: gatheringId,
+    workspace_id: workspace.id,
+    position: basePosition + i + 1,
+    type: el.type,
+    title: el.title,
+  }));
+  const { error: insertError } = await supabase.from('service_elements').insert(rows);
+  if (insertError) {
+    return { error: 'テンプレートを適用できませんでした。既存の礼拝順序は変更されていません。' };
+  }
+
+  if (oldRows && oldRows.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('service_elements')
+      .delete()
+      .in(
+        'id',
+        oldRows.map((r) => r.id),
+      )
+      .eq('workspace_id', workspace.id);
+    if (deleteError) {
+      return {
+        error:
+          '以前の要素の削除に失敗しました。テンプレートの要素は追加済みです。残った要素を手動で削除してください。',
+      };
+    }
+  }
+  revalidatePath(`/gatherings/${gatheringId}`);
+  return { ok: true, nonce: Date.now() };
 }

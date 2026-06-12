@@ -3,8 +3,10 @@
 import { useActionState, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { CEREMONY_TYPE_LABELS, SERVICE_ELEMENT_TYPE_LABELS } from '@/lib/labels';
+import { SERVICE_TEMPLATES } from '@/lib/service-templates';
 import {
   addElement,
+  applyServiceTemplate,
   deleteElement,
   duplicateElement,
   moveElement,
@@ -150,7 +152,10 @@ export function ElementsEditor({
 
   return (
     <section aria-label="礼拝順序" className="rounded-lg border border-line bg-paper-raised p-4">
-      <h2 className="text-sm font-medium text-ink">礼拝順序</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-medium text-ink">礼拝順序</h2>
+        <TemplateApplyForm gatheringId={gatheringId} hasElements={elements.length > 0} />
+      </div>
       <p className="mt-1 text-xs text-ink-muted">
         賛美や式典は何度でも追加でき、↑↓で自由に並べ替えられます。
       </p>
@@ -227,5 +232,59 @@ export function ElementsEditor({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function TemplateApplyForm({
+  gatheringId,
+  hasElements,
+}: {
+  gatheringId: string;
+  hasElements: boolean;
+}) {
+  const [state, formAction, pending] = useActionState(
+    applyServiceTemplate.bind(null, gatheringId),
+    initialState,
+  );
+
+  return (
+    <form
+      action={formAction}
+      onSubmit={(e) => {
+        if (
+          hasElements &&
+          !window.confirm('現在の礼拝順序をテンプレートで置き換えます。よろしいですか？')
+        ) {
+          e.preventDefault();
+        }
+      }}
+      className="flex items-center gap-2"
+    >
+      <label htmlFor="service-template" className="sr-only">
+        テンプレート
+      </label>
+      <select id="service-template" name="template" defaultValue="" required className={inputClass}>
+        <option value="" disabled>
+          テンプレート…
+        </option>
+        {SERVICE_TEMPLATES.map((t) => (
+          <option key={t.key} value={t.key}>
+            {t.label}
+          </option>
+        ))}
+      </select>
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5 disabled:opacity-50"
+      >
+        {pending ? '適用中…' : '適用'}
+      </button>
+      {state.error ? (
+        <span role="alert" className="text-xs text-red-800">
+          {state.error}
+        </span>
+      ) : null}
+    </form>
   );
 }
