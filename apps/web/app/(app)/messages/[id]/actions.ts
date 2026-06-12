@@ -40,6 +40,14 @@ const MESSAGE_STATUSES = [
   'archived',
 ] as const;
 
+const GATHERING_KINDS = [
+  'sunday_worship',
+  'prayer_meeting',
+  'special_service',
+  'chapel',
+  'other',
+] as const;
+
 const updateMessageSchema = z.object({
   id: z.uuid(),
   version: z.coerce.number().int().min(1),
@@ -50,6 +58,13 @@ const updateMessageSchema = z.object({
   summary: z.string().max(2000, '概要は2000文字以内で入力してください。'),
   outline_markdown: z.string().max(50000),
   notes_markdown: z.string().max(50000),
+  // 語る機会（任意。日時が入力されたときだけ Gathering+Delivery を作成する）
+  opp_starts_at_local: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    .or(z.literal('')),
+  opp_kind: z.enum(GATHERING_KINDS),
+  opp_venue: z.string().trim().max(100),
 });
 
 export async function updateMessage(
@@ -66,11 +81,14 @@ export async function updateMessage(
     summary: formData.get('summary') ?? '',
     outline_markdown: formData.get('outline_markdown') ?? '',
     notes_markdown: formData.get('notes_markdown') ?? '',
+    opp_starts_at_local: formData.get('opp_starts_at_local') ?? '',
+    opp_kind: formData.get('opp_kind') ?? 'sunday_worship',
+    opp_venue: formData.get('opp_venue') ?? '',
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? '入力内容をご確認ください。' };
   }
-  const { id, version, ...fields } = parsed.data;
+  const { id, version, opp_starts_at_local, opp_kind, opp_venue, ...fields } = parsed.data;
 
   const workspace = await getActiveWorkspace();
   const supabase = await createClient();
@@ -95,6 +113,45 @@ export async function updateMessage(
       error:
         '他の画面でこのメッセージが更新されています。編集内容を控えたうえで、ページを再読み込みしてください。',
     };
+  }
+
+  // 語る機会の日時が入力されていれば、Gathering を作成して関連付ける
+  if (opp_starts_at_local) {
+    const venueId = await findOrCreateVenue(supabase, workspace.id, opp_venue);
+    const { data: gathering, error: gatheringError } = await supabase
+      .from('gatherings')
+      .insert({
+        workspace_id: workspace.id,
+        kind: opp_kind,
+        starts_at: `${opp_starts_at_local}:00+09:00`,
+        timezone: 'Asia/Tokyo',
+        venue_id: venueId,
+      })
+      .select('id')
+      .single();
+    if (gatheringError || !gathering) {
+      return {
+        version: data.version,
+        error: '本文は保存しましたが、語る機会を追加できませんでした。もう一度お試しください。',
+      };
+    }
+    const { error: deliveryError } = await supabase.from('message_deliveries').insert({
+      message_id: id,
+      gathering_id: gathering.id,
+      workspace_id: workspace.id,
+    });
+    if (deliveryError) {
+      await supabase
+        .from('gatherings')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', gathering.id);
+      return {
+        version: data.version,
+        error: '本文は保存しましたが、語る機会を追加できませんでした。もう一度お試しください。',
+      };
+    }
+    revalidatePath('/calendar');
+    revalidatePath('/');
   }
 
   revalidatePath(`/messages/${id}`);
@@ -264,69 +321,8 @@ export async function movePassage(
 }
 
 // ---------------------------------------------------------------------------
-// 語る機会（Gathering を作成して Delivery で関連付ける。KX-012）
+// 語る機会（作成は updateMessage の保存に統合。ここは削除のみ）
 // ---------------------------------------------------------------------------
-
-export type OpportunityFormState = { ok?: boolean; nonce?: number; error?: string };
-
-const opportunitySchema = z.object({
-  starts_at_local: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, '日時を入力してください。'),
-  kind: z.enum(['sunday_worship', 'prayer_meeting', 'special_service', 'chapel', 'other']),
-  venue_name: z.string().trim().max(100),
-  speaker_name: z.string().trim().max(100),
-});
-
-export async function addSpeakingOpportunity(
-  messageId: string,
-  _prev: OpportunityFormState,
-  formData: FormData,
-): Promise<OpportunityFormState> {
-  const parsed = opportunitySchema.safeParse({
-    starts_at_local: formData.get('starts_at_local'),
-    kind: formData.get('kind'),
-    venue_name: formData.get('venue_name') ?? '',
-    speaker_name: formData.get('speaker_name') ?? '',
-  });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? '入力内容をご確認ください。' };
-  }
-  const workspace = await getActiveWorkspace();
-  const supabase = await createClient();
-  const venueId = await findOrCreateVenue(supabase, workspace.id, parsed.data.venue_name);
-
-  const { data: gathering, error: gatheringError } = await supabase
-    .from('gatherings')
-    .insert({
-      workspace_id: workspace.id,
-      kind: parsed.data.kind,
-      starts_at: `${parsed.data.starts_at_local}:00+09:00`,
-      timezone: 'Asia/Tokyo',
-      venue_id: venueId,
-    })
-    .select('id')
-    .single();
-  if (gatheringError || !gathering) {
-    return { error: '語る機会を作成できませんでした。もう一度お試しください。' };
-  }
-
-  const { error: deliveryError } = await supabase.from('message_deliveries').insert({
-    message_id: messageId,
-    gathering_id: gathering.id,
-    workspace_id: workspace.id,
-    speaker_name: parsed.data.speaker_name,
-  });
-  if (deliveryError) {
-    // Delivery に失敗した場合は作成した Gathering を残さない
-    await supabase
-      .from('gatherings')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', gathering.id);
-    return { error: '語る機会を関連付けられませんでした。もう一度お試しください。' };
-  }
-  revalidatePath(`/messages/${messageId}`);
-  revalidatePath('/calendar');
-  return { ok: true, nonce: Date.now() };
-}
 
 export async function removeSpeakingOpportunity(
   deliveryId: string,

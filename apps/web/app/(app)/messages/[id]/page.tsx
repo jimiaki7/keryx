@@ -5,10 +5,9 @@ import { z } from 'zod';
 import { MESSAGE_TYPE_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
-import { MessageDeleteButton, MessageEditor } from './message-editor';
+import { MessageDeleteButton, MessageEditor, type OpportunityItem } from './message-editor';
 import { PassageEditor } from './passage-editor';
 import { PreparationStageControl } from './preparation-stage';
-import { SpeakingOpportunities, type OpportunityItem } from './speaking-opportunities';
 
 export const metadata: Metadata = { title: 'メッセージ' };
 
@@ -84,8 +83,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
       <div className="flex flex-col gap-5">
         <PassageEditor messageId={message.id} passages={passages} />
         <PreparationStageControl messageId={message.id} stage={message.preparation_stage} />
-        <SpeakingOpportunities messageId={message.id} opportunities={opportunities} />
-        <MessageEditor message={message} />
+        <MessageEditor message={message} opportunities={opportunities} />
       </div>
     </>
   );

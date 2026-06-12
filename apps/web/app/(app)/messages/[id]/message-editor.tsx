@@ -1,8 +1,15 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import Link from 'next/link';
 import type { KeyboardEvent } from 'react';
-import { softDeleteMessage, updateMessage, type UpdateMessageState } from './actions';
+import { GATHERING_KIND_LABELS } from '@/lib/labels';
+import {
+  removeSpeakingOpportunity,
+  softDeleteMessage,
+  updateMessage,
+  type UpdateMessageState,
+} from './actions';
 
 const initialState: UpdateMessageState = {};
 
@@ -22,12 +29,42 @@ const STATUS_OPTIONS = [
   { value: 'archived', label: 'アーカイブ' },
 ];
 
+const KIND_OPTIONS = Object.entries(GATHERING_KIND_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
+
 /** 日本語IMEの変換確定Enterでフォームを送信しない */
 function preventImeSubmit(e: KeyboardEvent<HTMLInputElement>) {
   if (e.key === 'Enter' && (e.nativeEvent.isComposing || e.keyCode === 229)) {
     e.preventDefault();
   }
 }
+
+function formatTokyo(iso: string): string {
+  return new Date(iso).toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export type OpportunityItem = {
+  id: string;
+  speaker_name: string;
+  gathering: {
+    id: string;
+    display_id: string;
+    title: string;
+    kind: string;
+    starts_at: string;
+    venue_name: string | null;
+  };
+};
 
 export type EditableMessage = {
   id: string;
@@ -45,7 +82,13 @@ export type EditableMessage = {
 const inputClass = 'rounded-md border border-line bg-paper px-3 py-2 text-sm';
 const labelClass = 'text-xs font-medium text-ink-muted';
 
-export function MessageEditor({ message }: { message: EditableMessage }) {
+export function MessageEditor({
+  message,
+  opportunities,
+}: {
+  message: EditableMessage;
+  opportunities: OpportunityItem[];
+}) {
   const [state, formAction, pending] = useActionState(updateMessage, initialState);
   // 保存成功時はサーバーが返した新しい version を使う（楽観ロック用）
   const version = state.version ?? message.version;
@@ -62,6 +105,91 @@ export function MessageEditor({ message }: { message: EditableMessage }) {
     >
       <input type="hidden" name="id" value={message.id} />
       <input type="hidden" name="version" value={version} />
+
+      <section aria-label="語る機会" className="rounded-lg border border-line bg-paper-raised p-4">
+        <h2 className="text-sm font-medium text-ink">語る機会</h2>
+        <p className="mt-1 text-xs text-ink-muted">
+          このメッセージをいつ・どこで語るか。日時を入力すると下の「保存」で追加されます。
+        </p>
+        {opportunities.length > 0 ? (
+          <ul className="mt-2 divide-y divide-line">
+            {opportunities.map((o) => (
+              <li key={o.id} className="flex flex-wrap items-center gap-2 py-2">
+                <Link
+                  href={`/gatherings/${o.gathering.id}`}
+                  className="text-sm font-medium text-ink hover:text-indigo-deep hover:underline"
+                >
+                  {o.gathering.title || GATHERING_KIND_LABELS[o.gathering.kind] || o.gathering.kind}
+                </Link>
+                <time dateTime={o.gathering.starts_at} className="text-sm text-indigo-soft">
+                  {formatTokyo(o.gathering.starts_at)}
+                </time>
+                {o.gathering.venue_name ? (
+                  <span className="text-xs text-ink-muted">{o.gathering.venue_name}</span>
+                ) : null}
+                {o.speaker_name ? (
+                  <span className="text-xs text-ink-muted">説教者: {o.speaker_name}</span>
+                ) : null}
+                <button
+                  type="submit"
+                  formAction={() => removeSpeakingOpportunity(o.id, message.id)}
+                  aria-label="この機会を外す"
+                  className="ml-auto rounded-md border border-line px-2 py-1.5 text-sm text-red-800 hover:bg-red-50"
+                >
+                  外す
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <fieldset
+          key={state.nonce ?? 'initial'}
+          className="mt-3 flex flex-wrap items-end gap-2 border-t border-line pt-3"
+        >
+          <div className="flex flex-col gap-1">
+            <label htmlFor="opp-starts" className={labelClass}>
+              日時
+            </label>
+            <input
+              id="opp-starts"
+              name="opp_starts_at_local"
+              type="datetime-local"
+              className={inputClass}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="opp-kind" className={labelClass}>
+              集会種別
+            </label>
+            <select
+              id="opp-kind"
+              name="opp_kind"
+              defaultValue="sunday_worship"
+              className={inputClass}
+            >
+              {KIND_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <label htmlFor="opp-venue" className={labelClass}>
+              会場（任意）
+            </label>
+            <input
+              id="opp-venue"
+              name="opp_venue"
+              type="text"
+              maxLength={100}
+              placeholder="例: 本会堂"
+              onKeyDown={preventImeSubmit}
+              className={inputClass}
+            />
+          </div>
+        </fieldset>
+      </section>
 
       <section className="rounded-lg border border-line bg-paper-raised p-4">
         <div className="flex flex-col gap-4">
