@@ -21,7 +21,11 @@ function preventImeSubmit(e: KeyboardEvent<HTMLInputElement>) {
   }
 }
 
-export function GatheringCreateForm() {
+export function GatheringCreateForm({
+  defaultStartsAt,
+}: {
+  defaultStartsAt?: string | undefined;
+}) {
   const [state, formAction, pending] = useActionState(createGathering, initialState);
 
   return (
@@ -57,6 +61,7 @@ export function GatheringCreateForm() {
             name="starts_at_local"
             type="datetime-local"
             required
+            defaultValue={defaultStartsAt}
             className="rounded-md border border-line bg-paper px-3 py-2 text-sm"
           />
         </div>

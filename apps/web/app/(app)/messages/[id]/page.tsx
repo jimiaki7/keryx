@@ -93,7 +93,16 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
             {message.display_id} ・ {MESSAGE_TYPE_LABELS[message.type] ?? message.type}
           </p>
         </div>
-        <MessageDeleteButton messageId={message.id} />
+        <div className="flex items-center gap-2">
+          <a
+            href={`/api/exports/markdown?message=${message.id}`}
+            download
+            className="rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5"
+          >
+            Markdown出力
+          </a>
+          <MessageDeleteButton messageId={message.id} />
+        </div>
       </div>
       <div className="flex flex-col gap-5">
         <PassageEditor messageId={message.id} passages={passages} />

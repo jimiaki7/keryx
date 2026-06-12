@@ -21,7 +21,14 @@ function formatTokyo(iso: string): string {
   });
 }
 
-export default async function GatheringsPage() {
+export default async function GatheringsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date } = await searchParams;
+  // カレンダーの「＋」から渡された日付（YYYY-MM-DD）を作成フォームの初期値にする
+  const defaultStartsAt = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T10:30` : undefined;
   const workspace = await getActiveWorkspace();
   const supabase = await createClient();
   const { data: gatherings, error } = await supabase
@@ -40,7 +47,7 @@ export default async function GatheringsPage() {
         description="礼拝・集会の日時と礼拝順序を計画します。月間カレンダーは今後追加されます。"
       />
       <div className="flex flex-col gap-6">
-        <GatheringCreateForm />
+        <GatheringCreateForm defaultStartsAt={defaultStartsAt} />
         {error ? (
           <div role="alert" className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
             一覧を読み込めませんでした。再読み込みしてください。
