@@ -153,6 +153,7 @@ export type Database = {
           ends_at: string | null
           id: string
           kind: string
+          metadata: Json
           notes: string
           starts_at: string
           status: string
@@ -173,6 +174,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           kind?: string
+          metadata?: Json
           notes?: string
           starts_at: string
           status?: string
@@ -193,6 +195,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           kind?: string
+          metadata?: Json
           notes?: string
           starts_at?: string
           status?: string
@@ -799,6 +802,15 @@ export type Database = {
         Args: { workspace_name: string; workspace_slug: string }
         Returns: string
       }
+      import_ledger_batch: {
+        Args: {
+          p_batch_id: string
+          p_rows: Json
+          p_source_file: string
+          p_workspace: string
+        }
+        Returns: Json
+      }
       is_active_member: {
         Args: { target_workspace: string }
         Returns: boolean
@@ -810,6 +822,10 @@ export type Database = {
       next_display_id: {
         Args: { entity_name: string; prefix: string; target_workspace: string }
         Returns: string
+      }
+      undo_import_batch: {
+        Args: { p_batch_id: string; p_workspace: string }
+        Returns: number
       }
     }
     Enums: {

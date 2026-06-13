@@ -175,19 +175,35 @@ kind で表現しきれない元値は `gatherings.title` に保持し、情報�
 - 1行からの変換表 → §4
 - 移行できない値の保存方針 → §6（破棄禁止・migration_notes）
 
-## 9. KX-020 実装メモと KX-021 への申し送り
+## 9. 実装状況（KX-020 / KX-021）
 
-KX-020（Dry Run）実装後の敵対的レビューで確認した、KX-021（実取り込み）と一緒に対応すべき残課題。
-いずれも現時点では実害ゼロ（Dry Run は読み取り専用で、`metadata.legacy_id` / `metadata.import.fingerprint`
-を書き込むのは KX-021 のため、現状 DB 重複判定は常に該当なし）。KX-021 着手時に必ず対応する。
+### KX-021（トランザクショナル取り込み）= 実装済み
 
-- **作成予定件数と DB 重複の整合（§7-2）**: `counts.messages/gatherings/...` は importable 行ベースで、
-  `dbDuplicate` 行を差し引かない。KX-021 が `metadata` を書き始めると、同じファイルの再 Dry Run で
-  「メッセージ: 12 / 新規: 0」のような自己矛盾表示になる。KX-021 では dbDuplicate を除いた件数で再計算するか、
-  各件数に「うち新規」を併記する。series/venues は既存エンティティ照合（§4.6 find-or-create）も加える。
+- DB 関数 `import_ledger_batch(p_workspace, p_source_file, p_batch_id, p_rows jsonb)`
+  （`supabase/migrations/20260613000006_import_ledger.sql`）。
+  - SECURITY INVOKER。RLS が workspace 分離と書き込みロール（messages は owner/pastor）を強制。
+  - 1 関数 = 1 トランザクション。行ごとに `BEGIN ... EXCEPTION` で savepoint を張り、
+    1 行の失敗がバッチ全体を巻き戻さず行単位で報告する（§10 部分失敗の報告）。
+  - 再実行安全性: legacy_id / fingerprint が一致する行はスキップ（同一トランザクション内で先に
+    insert した行も見えるため、ファイル内重複も自動でスキップ）。
+  - 1 行 → Message + Gathering + Delivery + Service Elements (+ Passage / Series / Venue) に分割。
+  - `metadata.import.batch_id` を保存し、`undo_import_batch` でバッチをソフトデリート（取り消し）できる。
+- gatherings に `metadata jsonb` 列を追加（legacy_id / import.batch_id の保持）。
+- サーバーアクション `submitImport`（phase=dryrun/import）/ `undoImportBatch`
+  （`apps/web/app/(app)/settings/import/actions.ts`）。ペイロード形は `toImportPayloadRow`
+  （`packages/domain/src/import.ts`）で 1 か所に定義し、Dry Run と実取り込みのズレを防ぐ。
+- 検証: pgTAP 0005（作成/冪等再実行/ファイル内重複/Gathering status/undo/認可）、
+  実台帳12行のブラウザ E2E（12 作成 → 再 Dry Run で全件重複 → batch undo）。
+
+実取り込みが `metadata` を書くようになったことで、KX-020 で申し送っていた「再 Dry Run の作成予定件数 vs
+DB 重複の不整合」は解消（再実行時に既存12件を重複判定し新規0件と表示）。
+
+### 残課題（次イテレーション）
+
 - **§5(3) 既存 Gathering との時刻衝突検出**: Dry Run の重複判定は現状 (1)legacy_id / (2)fingerprint のみ。
-  §5(3)「同一 workspace・同一 starts_at・同一 kind の既存 Gathering」（手入力済みデータとの衝突。自動スキップ不可・
-  要確認）は未実装。KX-021 で `gatherings` を starts_at/kind で照会し「既存集会あり（要確認）」として提示する。
+  §5(3)「同一 workspace・同一 starts_at・同一 kind の既存 Gathering」（手入力済みデータとの衝突。自動スキップ
+  不可・要確認）は未実装。`gatherings` を starts_at/kind で照会し「既存集会あり（要確認）」として提示する。
+- 大量行（数千行超）での body サイズ・実行時間は未検証（実運用想定は数十〜数百行）。
 
 ### セキュリティ・堅牢性（KX-020 で対応済み）
 

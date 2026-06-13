@@ -66,6 +66,7 @@ export type AnalyzedRow = {
   /** error のある行は false（インポート対象外） */
   importable: boolean;
   title: string;
+  centralMessage: string;
   messageType: string;
   messageStatus: string;
   preparationStage: string;
@@ -365,6 +366,7 @@ export function analyzeLedgerRows(rawRows: RawLedgerRow[]): ImportPlan {
       fingerprintSource,
       importable,
       title,
+      centralMessage: cell(raw, 'central_message'),
       messageType: kindMapped.type,
       messageStatus: stageMapped.status,
       preparationStage: stageMapped.stage,
@@ -419,4 +421,93 @@ export function analyzeLedgerRows(rawRows: RawLedgerRow[]): ImportPlan {
   };
 
   return { rows, issues, counts, inFileDuplicates };
+}
+
+// ---------------------------------------------------------------------------
+// KX-021: 実取り込み（import_ledger_batch RPC）への行ペイロード。
+// DB 関数が消費する JSON 形状を 1 か所で定義し、Dry Run と実取り込みのズレを防ぐ。
+// ---------------------------------------------------------------------------
+
+export type ImportPayloadRow = {
+  row_number: number;
+  fingerprint: string;
+  legacy_id: string;
+  type: string;
+  status: string;
+  preparation_stage: string;
+  title: string;
+  central_message: string;
+  notes: string;
+  kind: string;
+  gathering_title: string;
+  /** +09:00 付きの完全な ISO（例 2026-01-04T10:30:00+09:00） */
+  starts_at: string;
+  speaker: string;
+  venue: string;
+  series_name: string;
+  series_number: number | null;
+  passage: {
+    book_id: string;
+    start_chapter: number;
+    start_verse: number | null;
+    end_chapter: number;
+    end_verse: number | null;
+    display_text: string;
+  } | null;
+  elements: { type: string; title: string; ceremony_type?: string }[];
+  legacy: {
+    observance: string;
+    theme: string;
+    tags: string[];
+    next_action: string;
+    due_on: string;
+    manuscript_ref: string;
+  };
+  migration_notes: { column: string; value: string; reason: string }[];
+};
+
+/** 解析済みの 1 行を import_ledger_batch のペイロードへ変換する（importable 行のみ渡す） */
+export function toImportPayloadRow(row: AnalyzedRow, fingerprint: string): ImportPayloadRow {
+  return {
+    row_number: row.rowNumber,
+    fingerprint,
+    legacy_id: row.legacyId,
+    type: row.messageType,
+    status: row.messageStatus,
+    preparation_stage: row.preparationStage,
+    title: row.title,
+    central_message: row.centralMessage,
+    notes: row.memo,
+    kind: row.gatheringKind,
+    gathering_title: row.gatheringTitle,
+    starts_at: `${row.startsAtLocal}:00+09:00`,
+    speaker: row.speaker,
+    venue: row.venue,
+    series_name: row.seriesName,
+    series_number: row.seriesNumber,
+    passage: row.passage
+      ? {
+          book_id: row.passage.bookId,
+          start_chapter: row.passage.startChapter,
+          start_verse: row.passage.startVerse ?? null,
+          end_chapter: row.passage.endChapter,
+          end_verse: row.passage.endVerse ?? null,
+          display_text: row.passage.displayText,
+        }
+      : null,
+    elements: row.elements.map((e) => ({
+      type: e.type,
+      title: e.title,
+      ...(e.ceremonyType ? { ceremony_type: e.ceremonyType } : {}),
+    })),
+    legacy: {
+      observance: row.legacy.observance,
+      theme: row.legacy.theme,
+      tags: row.legacy.tags,
+      next_action: row.legacy.nextAction,
+      due_on: row.legacy.dueOn,
+      manuscript_ref: row.legacy.manuscriptRef,
+    },
+    migration_notes: row.migrationNotes,
+  };
 }

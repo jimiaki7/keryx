@@ -79,6 +79,9 @@ export async function createSeries(
     .insert({ workspace_id: workspace.id, ...result.fields })
     .select('id')
     .single();
+  if (error?.code === '23505') {
+    return { error: '同名のシリーズが既にあります。別の名前を入力してください。' };
+  }
   if (error || !data) {
     return { error: 'シリーズを作成できませんでした。もう一度お試しください。' };
   }

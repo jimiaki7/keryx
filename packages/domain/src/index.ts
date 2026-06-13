@@ -15,10 +15,17 @@ export {
   tokyoYearMonthOf,
 } from './calendar';
 export type { CalendarDay } from './calendar';
-export { analyzeLedgerRows, LEDGER_COLUMNS, LEDGER_SHEET_NAME, normalizeDate } from './import';
+export {
+  analyzeLedgerRows,
+  LEDGER_COLUMNS,
+  LEDGER_SHEET_NAME,
+  normalizeDate,
+  toImportPayloadRow,
+} from './import';
 export type {
   AnalyzedRow,
   ImportIssue,
+  ImportPayloadRow,
   ImportPlan,
   LedgerColumnKey,
   PlannedElement,

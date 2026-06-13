@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeLedgerRows, normalizeDate, type RawLedgerRow } from '../src/import';
+import {
+  analyzeLedgerRows,
+  normalizeDate,
+  toImportPayloadRow,
+  type RawLedgerRow,
+} from '../src/import';
 
 function row(cells: RawLedgerRow['cells'], rowNumber = 6): RawLedgerRow {
   return { rowNumber, cells };
@@ -192,5 +197,69 @@ describe('analyzeLedgerRows: 変換表（KX-019 §4）', () => {
     expect(
       r.migrationNotes.some((nte) => nte.column === '式典賛美' && nte.value === '感謝の歌'),
     ).toBe(true);
+  });
+
+  it('中心メッセージ（N列）を messages.central_message へ保持する', () => {
+    const plan = analyzeLedgerRows([row({ ...BASE, central_message: '神は世を愛された' })]);
+    expect(plan.rows[0]!.centralMessage).toBe('神は世を愛された');
+  });
+});
+
+describe('toImportPayloadRow: RPC ペイロード（KX-021）', () => {
+  it('解析済みの行を DB 関数の JSON 形状へ正しく変換する', () => {
+    const plan = analyzeLedgerRows([
+      row({
+        ...BASE,
+        kind: '主日礼拝',
+        central_message: '神は世を愛された',
+        series_name: '創世記講解',
+        series_number: '3',
+        venue: '本会堂',
+        speaker: 'Jimi',
+        memo: '導入の例話あり',
+        theme: '神',
+        tags: '創造,主権',
+        next_action: '推敲',
+        due: '2026-01-02',
+        manuscript_link: 'https://example.com/sermon',
+        ceremony: '聖餐式',
+        ceremony_hymn: '主の食卓',
+      }),
+    ]);
+    const payload = toImportPayloadRow(plan.rows[0]!, 'fp-abc');
+
+    expect(payload.fingerprint).toBe('fp-abc');
+    expect(payload.legacy_id).toBe('S-20260104-01');
+    expect(payload.type).toBe('sermon');
+    expect(payload.kind).toBe('sunday_worship');
+    expect(payload.status).toBe('completed');
+    expect(payload.preparation_stage).toBe('completed');
+    expect(payload.central_message).toBe('神は世を愛された');
+    expect(payload.notes).toBe('導入の例話あり');
+    expect(payload.starts_at).toBe('2026-01-04T10:30:00+09:00');
+    expect(payload.series_name).toBe('創世記講解');
+    expect(payload.series_number).toBe(3);
+    expect(payload.venue).toBe('本会堂');
+    expect(payload.speaker).toBe('Jimi');
+    expect(payload.passage).toEqual({
+      book_id: 'Gen',
+      start_chapter: 1,
+      start_verse: 1,
+      end_chapter: 1,
+      end_verse: 5,
+      display_text: '創世記1:1-5',
+    });
+    expect(payload.legacy).toEqual({
+      observance: '',
+      theme: '神',
+      tags: ['創造', '主権'],
+      next_action: '推敲',
+      due_on: '2026-01-02',
+      manuscript_ref: 'https://example.com/sermon',
+    });
+    // 礼拝要素: 聖書朗読→説教→式典→式典賛美 が含まれ、式典に ceremony_type が付く
+    const ceremony = payload.elements.find((e) => e.type === 'ceremony');
+    expect(ceremony?.ceremony_type).toBe('communion');
+    expect(payload.elements.some((e) => e.type === 'message')).toBe(true);
   });
 });
