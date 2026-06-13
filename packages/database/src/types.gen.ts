@@ -861,6 +861,10 @@ export type Database = {
         Args: { target_workspace: string }
         Returns: string
       }
+      message_analytics: {
+        Args: { p_from?: string; p_to?: string; p_workspace: string }
+        Returns: Json
+      }
       next_display_id: {
         Args: { entity_name: string; prefix: string; target_workspace: string }
         Returns: string
