@@ -61,6 +61,25 @@ export const SERVICE_ELEMENT_TYPE_LABELS: Record<string, string> = {
   custom: 'その他',
 };
 
+export const PLAN_LABELS: Record<string, string> = {
+  free: 'Free（試用）',
+  personal: 'Personal（個人牧師）',
+  church: 'Church（教会チーム）',
+};
+
+export const PLAN_DESCRIPTIONS: Record<string, string> = {
+  free: 'Message 件数の上限あり・基本カレンダー・基本エクスポート。',
+  personal: '無制限 Message・分析・テンプレート・バックアップ。',
+  church: '複数メンバー・権限・共有・監査履歴。',
+};
+
+export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
+  active: '有効',
+  trialing: '試用中',
+  past_due: '支払い遅延',
+  canceled: '解約済み',
+};
+
 export const MEMBER_ROLE_LABELS: Record<string, string> = {
   owner: 'オーナー',
   pastor: '牧師',

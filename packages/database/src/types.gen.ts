@@ -813,6 +813,53 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          external_customer_id: string | null
+          external_subscription_id: string | null
+          grace_until: string | null
+          plan: string
+          provider: string | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          external_customer_id?: string | null
+          external_subscription_id?: string | null
+          grace_until?: string | null
+          plan?: string
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          external_customer_id?: string | null
+          external_subscription_id?: string | null
+          grace_until?: string | null
+          plan?: string
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           created_at: string

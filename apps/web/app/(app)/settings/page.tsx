@@ -20,6 +20,21 @@ export default async function SettingsPage() {
           <p className="mt-1 text-sm text-ink-muted">{workspace.name}</p>
         </section>
         <section
+          aria-label="プランと課金"
+          className="rounded-lg border border-line bg-paper-raised px-4 py-3"
+        >
+          <h2 className="text-sm font-medium text-ink">プランと課金</h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            現在のプランを確認します（有料プランは準備中）。
+          </p>
+          <a
+            href="/settings/billing"
+            className="mt-3 inline-block rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5"
+          >
+            プランを確認
+          </a>
+        </section>
+        <section
           aria-label="エクスポート"
           className="rounded-lg border border-line bg-paper-raised px-4 py-3"
         >
