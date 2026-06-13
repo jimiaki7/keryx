@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
 import { MessageDeleteButton, MessageEditor, type OpportunityItem } from './message-editor';
 import { PassageEditor } from './passage-editor';
+import { PreachElsewhere } from './preach-elsewhere';
 import { PreparationStageControl } from './preparation-stage';
 
 export const metadata: Metadata = { title: 'メッセージ' };
@@ -84,6 +85,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
         <PassageEditor messageId={message.id} passages={passages} />
         <PreparationStageControl messageId={message.id} stage={message.preparation_stage} />
         <MessageEditor message={message} opportunities={opportunities} />
+        <PreachElsewhere messageId={message.id} />
       </div>
     </>
   );

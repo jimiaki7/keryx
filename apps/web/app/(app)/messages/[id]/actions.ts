@@ -339,6 +339,128 @@ export async function removeSpeakingOpportunity(
 }
 
 // ---------------------------------------------------------------------------
+// 別の場所でも語る（Jimi 方針: 1説教=1礼拝を保ち、再説教は内容を複製して場所を変える。
+// 同一 Message に複数 Delivery をぶら下げるのではなく、独立した Message を作る）
+// ---------------------------------------------------------------------------
+
+export type PreachElsewhereState = { error?: string };
+
+const preachElsewhereSchema = z.object({
+  starts_at_local: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, '日時を入力してください。'),
+  kind: z.enum(GATHERING_KINDS),
+  venue: z.string().trim().min(1, '会場を入力してください。').max(100),
+});
+
+export async function preachElsewhere(
+  messageId: string,
+  _prev: PreachElsewhereState,
+  formData: FormData,
+): Promise<PreachElsewhereState> {
+  if (!z.uuid().safeParse(messageId).success) return { error: '対象が不正です。' };
+  const parsed = preachElsewhereSchema.safeParse({
+    starts_at_local: formData.get('starts_at_local') ?? '',
+    kind: formData.get('kind') ?? 'sunday_worship',
+    venue: formData.get('venue') ?? '',
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? '入力内容をご確認ください。' };
+  }
+
+  const workspace = await getActiveWorkspace();
+  const supabase = await createClient();
+
+  // 元メッセージの内容を読み込む（聖書箇所も複製する。題は同一＝同じ説教）
+  const { data: source } = await supabase
+    .from('messages')
+    .select(
+      'type, title, central_message, summary, outline_markdown, notes_markdown, message_passages(role, position, book_id, start_chapter, start_verse, end_chapter, end_verse, display_text)',
+    )
+    .eq('id', messageId)
+    .eq('workspace_id', workspace.id)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (!source) return { error: '元のメッセージが見つかりません。' };
+
+  // 内容を複製（再説教で多少手を入れる前提。準備段階・状態は新たに開始）
+  const { data: copy, error: copyError } = await supabase
+    .from('messages')
+    .insert({
+      workspace_id: workspace.id,
+      type: source.type,
+      status: 'planned',
+      title: source.title,
+      central_message: source.central_message,
+      summary: source.summary,
+      outline_markdown: source.outline_markdown,
+      notes_markdown: source.notes_markdown,
+    })
+    .select('id')
+    .single();
+  if (copyError || !copy) return { error: '複製できませんでした。もう一度お試しください。' };
+
+  if (source.message_passages.length > 0) {
+    await supabase.from('message_passages').insert(
+      source.message_passages.map((p) => ({
+        message_id: copy.id,
+        workspace_id: workspace.id,
+        role: p.role,
+        position: p.position,
+        book_id: p.book_id,
+        start_chapter: p.start_chapter,
+        start_verse: p.start_verse,
+        end_chapter: p.end_chapter,
+        end_verse: p.end_verse,
+        display_text: p.display_text,
+      })),
+    );
+  }
+
+  // 新しい場所・日時で礼拝予定と配信を作る。失敗時は複製をソフトデリートして巻き戻す。
+  const venueId = await findOrCreateVenue(supabase, workspace.id, parsed.data.venue);
+  const { data: gathering, error: gatheringError } = await supabase
+    .from('gatherings')
+    .insert({
+      workspace_id: workspace.id,
+      kind: parsed.data.kind,
+      starts_at: `${parsed.data.starts_at_local}:00+09:00`,
+      timezone: 'Asia/Tokyo',
+      venue_id: venueId,
+    })
+    .select('id')
+    .single();
+  if (gatheringError || !gathering) {
+    await supabase
+      .from('messages')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', copy.id)
+      .eq('workspace_id', workspace.id);
+    return { error: '複製しましたが、礼拝予定を作成できませんでした。もう一度お試しください。' };
+  }
+  const { error: deliveryError } = await supabase.from('message_deliveries').insert({
+    message_id: copy.id,
+    gathering_id: gathering.id,
+    workspace_id: workspace.id,
+  });
+  if (deliveryError) {
+    await supabase
+      .from('gatherings')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', gathering.id);
+    await supabase
+      .from('messages')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', copy.id)
+      .eq('workspace_id', workspace.id);
+    return { error: '複製しましたが、関連付けに失敗しました。もう一度お試しください。' };
+  }
+
+  revalidatePath('/messages');
+  revalidatePath('/calendar');
+  revalidatePath('/');
+  redirect(`/messages/${copy.id}`);
+}
+
+// ---------------------------------------------------------------------------
 // 準備段階（ADR-0003: 単一ステージ）
 // ---------------------------------------------------------------------------
 
