@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { preparationStagePercent } from '@keryx/domain';
+import { isPreparationBehind, preparationStagePercent } from '@keryx/domain';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { GATHERING_KIND_LABELS, PREPARATION_STAGE_LABELS } from '@/lib/labels';
@@ -51,6 +51,33 @@ export default async function HomePage() {
     nextMessage?.message_passages[0];
 
   const withinFourWeeks = (upcoming ?? []).filter((g) => g.starts_at <= fourWeeksIso);
+
+  // 要確認（§6.1 P0）: 今後の礼拝で メッセージ未割り当て / 聖書箇所未入力 / 準備遅延 を拾う
+  const attention = (upcoming ?? []).flatMap((g) => {
+    const d = daysUntil(g.starts_at);
+    const m = g.message_deliveries[0]?.messages ?? null;
+    const reasons: string[] = [];
+    if (!m) {
+      reasons.push('メッセージ未割り当て');
+    } else {
+      if (m.message_passages.length === 0) reasons.push('聖書箇所が未入力');
+      if (isPreparationBehind(m.preparation_stage, d)) {
+        reasons.push(
+          `準備が遅れ気味（${PREPARATION_STAGE_LABELS[m.preparation_stage] ?? m.preparation_stage}）`,
+        );
+      }
+    }
+    if (reasons.length === 0) return [];
+    return [
+      {
+        id: g.id,
+        href: m ? `/messages/${m.id}` : `/gatherings/${g.id}`,
+        title: g.title || GATHERING_KIND_LABELS[g.kind] || g.kind,
+        when: formatTokyo(g.starts_at),
+        reason: reasons.join('・'),
+      },
+    ];
+  });
 
   return (
     <>
@@ -133,6 +160,29 @@ export default async function HomePage() {
             />
           )}
         </section>
+
+        {attention.length > 0 ? (
+          <section aria-label="要確認">
+            <h2 className="mb-2 text-sm font-medium text-ink">要確認</h2>
+            <ul className="flex flex-col gap-2">
+              {attention.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-lg border border-gold/40 bg-gold/5 px-4 py-2.5 text-sm"
+                >
+                  <time className="w-32 text-indigo-soft">{a.when}</time>
+                  <Link
+                    href={a.href}
+                    className="font-medium text-ink hover:text-indigo-deep hover:underline"
+                  >
+                    {a.title}
+                  </Link>
+                  <span className="text-xs text-gold">{a.reason}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <section aria-label="今後4週間の予定">
           <h2 className="mb-2 text-sm font-medium text-ink">今後4週間</h2>

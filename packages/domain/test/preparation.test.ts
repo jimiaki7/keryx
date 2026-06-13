@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isPreparationBehind,
   isPreparationStage,
   PREPARATION_STAGES,
   preparationStageIndex,
@@ -37,5 +38,22 @@ describe('準備段階（ADR-0003）', () => {
     expect(isPreparationStage('exegesis')).toBe(true);
     expect(isPreparationStage('done')).toBe(false);
     expect(isPreparationStage(null)).toBe(false);
+  });
+
+  it('isPreparationBehind: 残り日数に対する遅れを判定する', () => {
+    // 過去・当日は対象外
+    expect(isPreparationBehind('not_started', 0)).toBe(false);
+    expect(isPreparationBehind('not_started', -3)).toBe(false);
+    // 3日前: 完了していなければ遅れ
+    expect(isPreparationBehind('manuscript', 2)).toBe(true);
+    expect(isPreparationBehind('completed', 2)).toBe(false);
+    // 1週前: 原稿に達していなければ遅れ
+    expect(isPreparationBehind('outline', 6)).toBe(true);
+    expect(isPreparationBehind('manuscript', 6)).toBe(false);
+    // 2週前: アウトラインに達していなければ遅れ
+    expect(isPreparationBehind('exegesis', 12)).toBe(true);
+    expect(isPreparationBehind('outline', 12)).toBe(false);
+    // 2週より先は遅れと見なさない
+    expect(isPreparationBehind('not_started', 20)).toBe(false);
   });
 });

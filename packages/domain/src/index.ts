@@ -1,4 +1,5 @@
 export {
+  isPreparationBehind,
   isPreparationStage,
   PREPARATION_STAGES,
   preparationStageIndex,
