@@ -81,6 +81,21 @@ export default async function SettingsPage() {
             インポートへ（Dry Run）
           </a>
         </section>
+        <section
+          aria-label="履歴と復元"
+          className="rounded-lg border border-line bg-paper-raised px-4 py-3"
+        >
+          <h2 className="text-sm font-medium text-ink">履歴と復元</h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            変更履歴の確認と、削除したメッセージ・礼拝予定・シリーズの復元ができます。
+          </p>
+          <a
+            href="/settings/history"
+            className="mt-3 inline-block rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5"
+          >
+            履歴と復元へ
+          </a>
+        </section>
         <EmptyState
           title="詳細設定は準備中です"
           description="タイムゾーンや言語などをここで設定できるようになります。"

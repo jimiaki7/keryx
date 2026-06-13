@@ -61,6 +61,46 @@ export const SERVICE_ELEMENT_TYPE_LABELS: Record<string, string> = {
   custom: 'その他',
 };
 
+export const ENTITY_TYPE_LABELS: Record<string, string> = {
+  message: 'メッセージ',
+  gathering: '礼拝予定',
+  series: 'シリーズ',
+  observance: '教会暦',
+  venue: '会場',
+};
+
+export const AUDIT_ACTION_LABELS: Record<string, string> = {
+  create: '作成',
+  update: '更新',
+  soft_delete: '削除',
+  restore: '復元',
+};
+
+// audit の changed_fields（列名）→ 日本語。未知の列はそのまま表示する。
+export const FIELD_LABELS: Record<string, string> = {
+  title: 'タイトル',
+  status: '状態',
+  preparation_stage: '準備段階',
+  central_message: '中心メッセージ',
+  summary: '概要',
+  outline_markdown: 'アウトライン',
+  notes_markdown: 'ノート',
+  type: '種別',
+  primary_series_id: 'シリーズ',
+  starts_at: '日時',
+  ends_at: '終了日時',
+  venue_id: '会場',
+  kind: '集会種別',
+  audience: '対象',
+  notes: 'メモ',
+  name: '名称',
+  description: '説明',
+  color: '色',
+  starts_on: '開始日',
+  ends_on: '終了日',
+  deleted_at: '削除状態',
+};
+
 export const CEREMONY_TYPE_LABELS: Record<string, string> = {
   communion: '聖餐式',
   baptism: '洗礼式',
