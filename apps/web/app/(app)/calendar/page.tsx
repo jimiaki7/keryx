@@ -52,7 +52,7 @@ export default async function CalendarPage({
 
   const { start, end } = gridRange(month);
   const nowIso = new Date().toISOString();
-  const [{ data: gatherings }, { data: upcoming }] = await Promise.all([
+  const [{ data: gatherings }, { data: upcoming }, { data: observances }] = await Promise.all([
     supabase
       .from('gatherings')
       .select('id, title, kind, status, starts_at')
@@ -71,6 +71,16 @@ export default async function CalendarPage({
       .gte('starts_at', nowIso)
       .order('starts_at', { ascending: true })
       .limit(12),
+    supabase
+      .from('observances')
+      .select('id, name, color, starts_on, ends_on')
+      .eq('workspace_id', workspace.id)
+      .is('deleted_at', null)
+      .lte('starts_on', end)
+      .gte('ends_on', start)
+      .order('starts_on', { ascending: true })
+      .order('ends_on', { ascending: true })
+      .order('name', { ascending: true }),
   ]);
 
   const byDate = new Map<string, NonNullable<typeof gatherings>>();
@@ -79,6 +89,24 @@ export default async function CalendarPage({
     const list = byDate.get(key) ?? [];
     list.push(g);
     byDate.set(key, list);
+  }
+
+  // 教会暦は複数日にまたがるので、グリッド範囲内の各日へ展開する
+  const nextDate = (iso: string): string => {
+    const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
+    const t = new Date(Date.UTC(y, m - 1, d) + 86400000);
+    return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, '0')}-${String(t.getUTCDate()).padStart(2, '0')}`;
+  };
+  const obsByDate = new Map<string, { name: string; color: string }[]>();
+  for (const o of observances ?? []) {
+    let d = o.starts_on < start ? start : o.starts_on;
+    const last = o.ends_on > end ? end : o.ends_on;
+    while (d <= last) {
+      const list = obsByDate.get(d) ?? [];
+      list.push({ name: o.name, color: o.color });
+      obsByDate.set(d, list);
+      d = nextDate(d);
+    }
   }
 
   const weeks = monthGrid(month);
@@ -137,7 +165,7 @@ export default async function CalendarPage({
                   return (
                     <td
                       key={day.date}
-                      className={`group h-24 border border-line p-1 align-top ${
+                      className={`group h-24 min-h-24 border border-line p-1 align-top ${
                         day.inMonth ? 'bg-paper-raised' : 'bg-paper text-ink-muted'
                       }`}
                     >
@@ -152,6 +180,16 @@ export default async function CalendarPage({
                       >
                         {dayNumber}
                       </span>
+                      {(obsByDate.get(day.date) ?? []).map((o, i) => (
+                        <div
+                          key={`obs-${i}`}
+                          className="mt-0.5 truncate border-l-2 pl-1 text-[10px] leading-tight text-ink-muted"
+                          style={{ borderColor: o.color || '#475569' }}
+                          title={o.name}
+                        >
+                          {o.name}
+                        </div>
+                      ))}
                       <ul className="mt-0.5 flex flex-col gap-0.5">
                         {items.map((g) => (
                           <li key={g.id}>
@@ -178,7 +216,8 @@ export default async function CalendarPage({
         </table>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
-        礼拝予定はメッセージ詳細の「礼拝予定」から作成・割り当てできます。教会暦・祝日の表示は今後追加されます。
+        礼拝予定はメッセージ詳細の「語る機会」から作成・割り当てできます。教会暦は「設定 ＞
+        教会暦・行事」で管理でき、ここに重ねて表示されます。
       </p>
 
       <section aria-label="今後の予定" className="mt-8">

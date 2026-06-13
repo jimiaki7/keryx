@@ -52,6 +52,21 @@ export default async function SettingsPage() {
           </div>
         </section>
         <section
+          aria-label="教会暦"
+          className="rounded-lg border border-line bg-paper-raised px-4 py-3"
+        >
+          <h2 className="text-sm font-medium text-ink">教会暦・行事</h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            アドベント・イースターなどのプリセット適用や、独自の行事を管理します（カレンダーに表示）。
+          </p>
+          <a
+            href="/settings/observances"
+            className="mt-3 inline-block rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5"
+          >
+            教会暦を管理
+          </a>
+        </section>
+        <section
           aria-label="インポート"
           className="rounded-lg border border-line bg-paper-raised px-4 py-3"
         >
@@ -68,7 +83,7 @@ export default async function SettingsPage() {
         </section>
         <EmptyState
           title="詳細設定は準備中です"
-          description="タイムゾーンや教会暦プリセットなどをここで設定できるようになります。"
+          description="タイムゾーンや言語などをここで設定できるようになります。"
         />
         <form action={signOut}>
           <button

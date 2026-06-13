@@ -15,6 +15,8 @@ export {
   tokyoYearMonthOf,
 } from './calendar';
 export type { CalendarDay } from './calendar';
+export { gregorianEaster, liturgicalObservances } from './liturgical';
+export type { LiturgicalObservance } from './liturgical';
 export {
   analyzeLedgerRows,
   LEDGER_COLUMNS,

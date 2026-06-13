@@ -446,6 +446,71 @@ export type Database = {
           },
         ]
       }
+      observances: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          ends_on: string
+          id: string
+          kind: string
+          metadata: Json
+          name: string
+          preset_key: string | null
+          source: string
+          starts_on: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          ends_on: string
+          id?: string
+          kind?: string
+          metadata?: Json
+          name: string
+          preset_key?: string | null
+          source?: string
+          starts_on: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          ends_on?: string
+          id?: string
+          kind?: string
+          metadata?: Json
+          name?: string
+          preset_key?: string | null
+          source?: string
+          starts_on?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observances_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
