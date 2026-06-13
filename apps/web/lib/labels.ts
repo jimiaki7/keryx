@@ -80,6 +80,17 @@ export const SUBSCRIPTION_STATUS_LABELS: Record<string, string> = {
   canceled: '解約済み',
 };
 
+export const AI_SUGGESTION_KIND_LABELS: Record<string, string> = {
+  summary: '概要の候補',
+  central_message: '中心メッセージの候補',
+};
+
+export const AI_SUGGESTION_STATUS_LABELS: Record<string, string> = {
+  pending: '未承認',
+  approved: '承認済み',
+  rejected: '却下',
+};
+
 export const MEMBER_ROLE_LABELS: Record<string, string> = {
   owner: 'オーナー',
   pastor: '牧師',

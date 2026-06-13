@@ -34,6 +34,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_suggestions: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          message_id: string
+          model: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          message_id: string
+          model?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          message_id?: string
+          model?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_suggestions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action: string
@@ -1002,6 +1062,10 @@ export type Database = {
         Args: { p_token: string }
         Returns: string
       }
+      approve_ai_suggestion: {
+        Args: { p_suggestion_id: string }
+        Returns: undefined
+      }
       create_workspace: {
         Args: { workspace_name: string; workspace_slug: string }
         Returns: string
@@ -1043,6 +1107,10 @@ export type Database = {
           status: string
           workspace_name: string
         }[]
+      }
+      reject_ai_suggestion: {
+        Args: { p_suggestion_id: string }
+        Returns: undefined
       }
       search_messages: {
         Args: {

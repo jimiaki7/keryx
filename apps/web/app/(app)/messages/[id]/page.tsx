@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
+import { aiConfigured } from '@/lib/ai/claude';
 import { MESSAGE_TYPE_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
+import { AiSuggestions, type PendingSuggestion } from './ai-suggestions';
 import { MessageDeleteButton, MessageEditor, type OpportunityItem } from './message-editor';
 import { PassageEditor } from './passage-editor';
 import { PreachElsewhere } from './preach-elsewhere';
@@ -47,6 +49,14 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
     .eq('workspace_id', workspace.id)
     .is('deleted_at', null)
     .order('name', { ascending: true });
+
+  const { data: suggestionRows } = await supabase
+    .from('ai_suggestions')
+    .select('id, kind, content, model')
+    .eq('message_id', message.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+  const suggestions: PendingSuggestion[] = suggestionRows ?? [];
 
   const opportunities: OpportunityItem[] = (deliveriesRaw ?? [])
     .filter((d) => d.gatherings.deleted_at === null)
@@ -92,6 +102,11 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
         <PassageEditor messageId={message.id} passages={passages} />
         <PreparationStageControl messageId={message.id} stage={message.preparation_stage} />
         <MessageEditor message={message} opportunities={opportunities} venues={venues ?? []} />
+        <AiSuggestions
+          messageId={message.id}
+          configured={aiConfigured()}
+          suggestions={suggestions}
+        />
         <PreachElsewhere messageId={message.id} venues={venues ?? []} />
       </div>
     </>
