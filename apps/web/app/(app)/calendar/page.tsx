@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/page-header';
 import { GATHERING_KIND_LABELS, GATHERING_STATUS_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
+import { createDraftMessageForDate } from '../messages/actions';
 
 export const metadata: Metadata = { title: 'カレンダー' };
 
@@ -169,17 +170,30 @@ export default async function CalendarPage({
                         day.inMonth ? 'bg-paper-raised' : 'bg-paper text-ink-muted'
                       }`}
                     >
-                      <span
-                        className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                          isToday
-                            ? 'bg-indigo-deep font-medium text-paper-raised'
-                            : day.inMonth
-                              ? 'text-ink'
-                              : 'text-ink-muted'
-                        }`}
-                      >
-                        {dayNumber}
-                      </span>
+                      <div className="flex items-start justify-between">
+                        <span
+                          className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                            isToday
+                              ? 'bg-indigo-deep font-medium text-paper-raised'
+                              : day.inMonth
+                                ? 'text-ink'
+                                : 'text-ink-muted'
+                          }`}
+                        >
+                          {dayNumber}
+                        </span>
+                        <form action={createDraftMessageForDate}>
+                          <input type="hidden" name="date" value={day.date} />
+                          <button
+                            type="submit"
+                            aria-label={`${day.date} にメッセージを追加`}
+                            title="この日にメッセージを追加"
+                            className="rounded px-1 text-sm leading-6 text-ink-muted transition-opacity hover:bg-indigo-deep/10 hover:text-indigo-deep focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                          >
+                            ＋
+                          </button>
+                        </form>
+                      </div>
                       {(obsByDate.get(day.date) ?? []).map((o, i) => (
                         <div
                           key={`obs-${i}`}

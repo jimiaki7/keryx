@@ -87,10 +87,13 @@ export function MessageEditor({
   message,
   opportunities,
   venues,
+  defaultOppStartsAt = '',
 }: {
   message: EditableMessage;
   opportunities: OpportunityItem[];
   venues: { id: string; name: string }[];
+  // カレンダーの「＋」から渡される語る機会日時の初期値（YYYY-MM-DDTHH:mm）。未指定は空。
+  defaultOppStartsAt?: string;
 }) {
   const [state, formAction, pending] = useActionState(updateMessage, initialState);
   // 保存成功時はサーバーが返した新しい version を使う（楽観ロック用）
@@ -154,6 +157,7 @@ export function MessageEditor({
               id="opp-starts"
               name="opp_starts_at_local"
               type="datetime-local"
+              defaultValue={defaultOppStartsAt}
               className={inputClass}
             />
           </div>

@@ -21,6 +21,27 @@ export async function createDraftMessage(): Promise<void> {
   redirect(`/messages/${message.id}`);
 }
 
+/** カレンダーの「＋」: 空のメッセージを作成し、詳細ページへ。
+ *  クリックした日付を ?date= で渡し、詳細の「語る機会」日時に自動入力する。 */
+export async function createDraftMessageForDate(formData: FormData): Promise<void> {
+  const raw = String(formData.get('date') ?? '');
+  // URL に載せる前に YYYY-MM-DD だけを許可（任意入力の混入を防ぐ）
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : '';
+
+  const workspace = await getActiveWorkspace();
+  const supabase = await createClient();
+  const { data: message, error } = await supabase
+    .from('messages')
+    .insert({ workspace_id: workspace.id, type: 'sermon', status: 'planned' })
+    .select('id')
+    .single();
+  if (error || !message) {
+    throw new Error('メッセージを作成できませんでした。');
+  }
+  revalidatePath('/messages');
+  redirect(date ? `/messages/${message.id}?date=${date}` : `/messages/${message.id}`);
+}
+
 /** メッセージを複製する（本文・聖書箇所をコピー。語る機会・準備段階は引き継がない） */
 export async function duplicateMessage(messageId: string): Promise<void> {
   const workspace = await getActiveWorkspace();

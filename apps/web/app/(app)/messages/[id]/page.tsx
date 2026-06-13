@@ -29,9 +29,20 @@ function gatheringCaption(o: OpportunityItem): string {
     : `${label}・${date}`;
 }
 
-export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function MessageDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ date?: string }>;
+}) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
+
+  // カレンダーの「＋」から来たときは ?date=YYYY-MM-DD を「語る機会」日時に自動入力する
+  const { date: dateParam } = await searchParams;
+  const defaultOppStartsAt =
+    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? `${dateParam}T10:30` : '';
 
   const workspace = await getActiveWorkspace();
   const supabase = await createClient();
@@ -140,7 +151,12 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
       <div className="flex flex-col gap-5">
         <PassageEditor messageId={message.id} passages={passages} />
         <PreparationStageControl messageId={message.id} stage={message.preparation_stage} />
-        <MessageEditor message={message} opportunities={opportunities} venues={venues ?? []} />
+        <MessageEditor
+          message={message}
+          opportunities={opportunities}
+          venues={venues ?? []}
+          defaultOppStartsAt={defaultOppStartsAt}
+        />
         {opportunities.length > 0 ? (
           opportunities.map((o) => (
             <ElementsEditor
