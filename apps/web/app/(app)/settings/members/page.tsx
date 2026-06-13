@@ -5,6 +5,7 @@ import { MEMBER_ROLE_LABELS, MEMBER_STATUS_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
 import { removeMember, updateMemberRole } from './actions';
+import { InviteManager } from './invite-manager';
 
 export const metadata: Metadata = { title: 'メンバー' };
 
@@ -37,6 +38,15 @@ export default async function MembersPage() {
     .slice()
     .sort((a, b) => (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9));
   const isOwner = workspace.role === 'owner';
+
+  const { data: invites } = isOwner
+    ? await supabase
+        .from('invitations')
+        .select('id, email, role, token')
+        .eq('workspace_id', workspace.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+    : { data: [] };
 
   return (
     <>
@@ -136,16 +146,7 @@ export default async function MembersPage() {
           </ul>
         </section>
 
-        <section
-          aria-label="メンバーの招待"
-          className="rounded-lg border border-dashed border-line bg-paper-raised p-4 text-sm text-ink-muted"
-        >
-          <h2 className="text-sm font-medium text-ink">メンバーの招待</h2>
-          <p className="mt-1">
-            メールでの招待は次の段階で追加します。現在は、すでに参加しているメンバーのロール変更・
-            削除ができます。
-          </p>
-        </section>
+        {isOwner ? <InviteManager pending={invites ?? []} /> : null}
       </div>
     </>
   );

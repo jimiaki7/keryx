@@ -224,6 +224,56 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          role: string
+          status: string
+          token: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          role: string
+          status?: string
+          token?: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          role?: string
+          status?: string
+          token?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_deliveries: {
         Row: {
           created_at: string
@@ -901,6 +951,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: {
+        Args: { p_token: string }
+        Returns: string
+      }
       create_workspace: {
         Args: { workspace_name: string; workspace_slug: string }
         Returns: string
@@ -933,6 +987,15 @@ export type Database = {
       next_display_id: {
         Args: { entity_name: string; prefix: string; target_workspace: string }
         Returns: string
+      }
+      peek_invitation: {
+        Args: { p_token: string }
+        Returns: {
+          expired: boolean
+          role: string
+          status: string
+          workspace_name: string
+        }[]
       }
       search_messages: {
         Args: {
