@@ -1,4 +1,5 @@
 import { BottomNav, MobileTopBar, SidebarNav } from '@/components/app-nav';
+import { OfflineBanner } from '@/components/offline-banner';
 import { getActiveWorkspace } from '@/lib/workspace';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <SidebarNav />
       </aside>
       <div className="flex min-h-dvh flex-1 flex-col">
+        <OfflineBanner />
         <MobileTopBar />
         <main id="main-content" className="flex-1 px-4 py-6 pb-28 md:px-10 md:py-10">
           {children}

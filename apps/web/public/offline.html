@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>オフライン | Keryx</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #faf8f3;
+        color: #2b303b;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Hiragino Kaku Gothic ProN',
+          sans-serif;
+      }
+      main {
+        max-width: 28rem;
+        padding: 2rem;
+        text-align: center;
+      }
+      h1 {
+        color: #1e2a4a;
+        font-size: 1.25rem;
+        margin: 0 0 0.75rem;
+      }
+      p {
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+      button {
+        margin-top: 1.25rem;
+        border: 1px solid #e7e2d8;
+        background: #fff;
+        color: #1e2a4a;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>オフラインです</h1>
+      <p>
+        インターネットに接続できないため、このページを表示できませんでした。<br />
+        接続が回復したら、再読み込みしてください。
+      </p>
+      <button onclick="location.reload()">再読み込み</button>
+    </main>
+  </body>
+</html>
