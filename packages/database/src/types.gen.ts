@@ -960,6 +960,10 @@ export type Database = {
           type: string
         }[]
       }
+      shares_active_workspace: {
+        Args: { target_user: string }
+        Returns: boolean
+      }
       undo_import_batch: {
         Args: { p_batch_id: string; p_workspace: string }
         Returns: number

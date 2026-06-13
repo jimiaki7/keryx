@@ -52,6 +52,21 @@ export default async function SettingsPage() {
           </div>
         </section>
         <section
+          aria-label="メンバー"
+          className="rounded-lg border border-line bg-paper-raised px-4 py-3"
+        >
+          <h2 className="text-sm font-medium text-ink">メンバーと権限</h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            Workspace のメンバーとロール（オーナー/牧師/計画担当/閲覧）を管理します。
+          </p>
+          <a
+            href="/settings/members"
+            className="mt-3 inline-block rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5"
+          >
+            メンバーを管理
+          </a>
+        </section>
+        <section
           aria-label="教会暦"
           className="rounded-lg border border-line bg-paper-raised px-4 py-3"
         >

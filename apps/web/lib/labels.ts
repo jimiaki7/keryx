@@ -61,6 +61,19 @@ export const SERVICE_ELEMENT_TYPE_LABELS: Record<string, string> = {
   custom: 'その他',
 };
 
+export const MEMBER_ROLE_LABELS: Record<string, string> = {
+  owner: 'オーナー',
+  pastor: '牧師',
+  planner: '計画担当',
+  viewer: '閲覧',
+};
+
+export const MEMBER_STATUS_LABELS: Record<string, string> = {
+  active: '有効',
+  invited: '招待中',
+  removed: '削除済み',
+};
+
 export const ENTITY_TYPE_LABELS: Record<string, string> = {
   message: 'メッセージ',
   gathering: '礼拝予定',
