@@ -467,6 +467,44 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_filters: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          params: Json
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          params?: Json
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          params?: Json
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_filters_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       series: {
         Row: {
           color: string
@@ -802,6 +840,10 @@ export type Database = {
         Args: { workspace_name: string; workspace_slug: string }
         Returns: string
       }
+      ilike_contains: {
+        Args: { haystack: string; needle: string }
+        Returns: boolean
+      }
       import_ledger_batch: {
         Args: {
           p_batch_id: string
@@ -822,6 +864,32 @@ export type Database = {
       next_display_id: {
         Args: { entity_name: string; prefix: string; target_workspace: string }
         Returns: string
+      }
+      search_messages: {
+        Args: {
+          p_date_from?: string
+          p_date_to?: string
+          p_limit?: number
+          p_offset?: number
+          p_series?: string
+          p_speaker?: string
+          p_status?: string
+          p_text?: string
+          p_type?: string
+          p_venue?: string
+          p_workspace: string
+        }
+        Returns: {
+          created_at: string
+          display_id: string
+          id: string
+          passages: Json
+          preparation_stage: string
+          status: string
+          title: string
+          total_count: number
+          type: string
+        }[]
       }
       undo_import_batch: {
         Args: { p_batch_id: string; p_workspace: string }

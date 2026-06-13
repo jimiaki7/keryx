@@ -10,14 +10,14 @@ export type MessageListItem = {
   preparation_stage: string;
   title: string;
   created_at: string;
-  message_passages: { display_text: string; role: string }[];
+  passages: { display_text: string; role: string }[];
 };
 
 export function MessageList({ messages }: { messages: MessageListItem[] }) {
   return (
     <ul className="flex flex-col gap-2">
       {messages.map((m) => {
-        const primary = m.message_passages.find((p) => p.role === 'primary');
+        const primary = m.passages.find((p) => p.role === 'primary');
         return (
           <li key={m.id} className="rounded-lg border border-line bg-paper-raised px-4 py-3">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
