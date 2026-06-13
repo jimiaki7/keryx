@@ -51,6 +51,21 @@ export default async function SettingsPage() {
             </a>
           </div>
         </section>
+        <section
+          aria-label="インポート"
+          className="rounded-lg border border-line bg-paper-raised px-4 py-3"
+        >
+          <h2 className="text-sm font-medium text-ink">インポート</h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            年間説教プランナー（Spreadsheet v1.3.1）の台帳を取り込みます。
+          </p>
+          <a
+            href="/settings/import"
+            className="mt-3 inline-block rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5"
+          >
+            インポートへ（Dry Run）
+          </a>
+        </section>
         <EmptyState
           title="詳細設定は準備中です"
           description="タイムゾーンや教会暦プリセットなどをここで設定できるようになります。"

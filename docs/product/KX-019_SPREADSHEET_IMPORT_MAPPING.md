@@ -174,3 +174,27 @@ kind で表現しきれない元値は `gatherings.title` に保持し、情報�
 - 列一覧・型・例外・重複規則 → §2/§3/§5/§6
 - 1行からの変換表 → §4
 - 移行できない値の保存方針 → §6（破棄禁止・migration_notes）
+
+## 9. KX-020 実装メモと KX-021 への申し送り
+
+KX-020（Dry Run）実装後の敵対的レビューで確認した、KX-021（実取り込み）と一緒に対応すべき残課題。
+いずれも現時点では実害ゼロ（Dry Run は読み取り専用で、`metadata.legacy_id` / `metadata.import.fingerprint`
+を書き込むのは KX-021 のため、現状 DB 重複判定は常に該当なし）。KX-021 着手時に必ず対応する。
+
+- **作成予定件数と DB 重複の整合（§7-2）**: `counts.messages/gatherings/...` は importable 行ベースで、
+  `dbDuplicate` 行を差し引かない。KX-021 が `metadata` を書き始めると、同じファイルの再 Dry Run で
+  「メッセージ: 12 / 新規: 0」のような自己矛盾表示になる。KX-021 では dbDuplicate を除いた件数で再計算するか、
+  各件数に「うち新規」を併記する。series/venues は既存エンティティ照合（§4.6 find-or-create）も加える。
+- **§5(3) 既存 Gathering との時刻衝突検出**: Dry Run の重複判定は現状 (1)legacy_id / (2)fingerprint のみ。
+  §5(3)「同一 workspace・同一 starts_at・同一 kind の既存 Gathering」（手入力済みデータとの衝突。自動スキップ不可・
+  要確認）は未実装。KX-021 で `gatherings` を starts_at/kind で照会し「既存集会あり（要確認）」として提示する。
+
+### セキュリティ・堅牢性（KX-020 で対応済み）
+
+信頼できないアップロードに対する DoS 防御を `apps/web/lib/import/parse-ledger.ts` に実装済み。
+
+- zip bomb: 必要エントリのみをストリーミング解凍し、展開後サイズに予算（1エントリ32MB / 合計64MB）を課して中断。
+- 巨大 `row r` 属性・大量行: グリッドは出現順 push で構築し物理行番号は別管理。解析行数の上限（50,000 行）。
+- 正規表現の全文走査（ReDoS）撤廃: シート XML は線形タグスキャンで O(n) 解析。
+- プロトタイプ汚染キー（`constructor` 等）の誤マッチ防止（`Object.hasOwn` ガード）、実在しない暦日の拒否、
+  Excel シリアル日付の `Math.floor` 変換、同名ヘッダーの黙示的上書き防止。
