@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
+import { ElementsEditor, type ElementItem } from '@/app/(app)/gatherings/[id]/elements-editor';
 import { aiConfigured } from '@/lib/ai/claude';
-import { MESSAGE_TYPE_LABELS } from '@/lib/labels';
+import { GATHERING_KIND_LABELS, MESSAGE_TYPE_LABELS } from '@/lib/labels';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveWorkspace } from '@/lib/workspace';
 import { AiSuggestions, type PendingSuggestion } from './ai-suggestions';
@@ -13,6 +14,20 @@ import { PreachElsewhere } from './preach-elsewhere';
 import { PreparationStageControl } from './preparation-stage';
 
 export const metadata: Metadata = { title: 'メッセージ' };
+
+/** 埋め込む礼拝順序エディタの見出しに、どの礼拝予定かを示すラベルを作る。 */
+function gatheringCaption(o: OpportunityItem): string {
+  const label = o.gathering.title || GATHERING_KIND_LABELS[o.gathering.kind] || o.gathering.kind;
+  const date = new Date(o.gathering.starts_at).toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+  });
+  return o.gathering.venue_name
+    ? `${label}・${date}・${o.gathering.venue_name}`
+    : `${label}・${date}`;
+}
 
 export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -73,6 +88,30 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
       },
     }));
 
+  // 礼拝順序（service_elements）は gathering に属する。メッセージ詳細では、
+  // 紐づく礼拝予定ごとに順序エディタを埋め込む（データは gathering 側に保存）。
+  const elementsByGathering = new Map<string, ElementItem[]>();
+  const gatheringIds = opportunities.map((o) => o.gathering.id);
+  if (gatheringIds.length > 0) {
+    const { data: elementsRaw } = await supabase
+      .from('service_elements')
+      .select('id, type, title, position, metadata, gathering_id')
+      .in('gathering_id', gatheringIds)
+      .order('position', { ascending: true })
+      .order('created_at', { ascending: true });
+    for (const e of elementsRaw ?? []) {
+      const list = elementsByGathering.get(e.gathering_id) ?? [];
+      list.push({
+        id: e.id,
+        type: e.type,
+        title: e.title,
+        position: e.position,
+        metadata: e.metadata as ElementItem['metadata'],
+      });
+      elementsByGathering.set(e.gathering_id, list);
+    }
+  }
+
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -102,6 +141,26 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
         <PassageEditor messageId={message.id} passages={passages} />
         <PreparationStageControl messageId={message.id} stage={message.preparation_stage} />
         <MessageEditor message={message} opportunities={opportunities} venues={venues ?? []} />
+        {opportunities.length > 0 ? (
+          opportunities.map((o) => (
+            <ElementsEditor
+              key={o.gathering.id}
+              gatheringId={o.gathering.id}
+              elements={elementsByGathering.get(o.gathering.id) ?? []}
+              caption={gatheringCaption(o)}
+            />
+          ))
+        ) : (
+          <section
+            aria-label="礼拝順序"
+            className="rounded-lg border border-line bg-paper-raised p-4"
+          >
+            <h2 className="text-sm font-medium text-ink">礼拝順序</h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              招詞・賛美・交読文・式典などの礼拝順序は、上の「語る機会」で礼拝予定を追加すると入力できます。
+            </p>
+          </section>
+        )}
         <AiSuggestions
           messageId={message.id}
           configured={aiConfigured()}

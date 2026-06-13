@@ -135,9 +135,12 @@ function ElementRow({
 export function ElementsEditor({
   gatheringId,
   elements,
+  caption,
 }: {
   gatheringId: string;
   elements: ElementItem[];
+  // 埋め込み先（メッセージ詳細など）で、どの礼拝予定の順序かを示す任意ラベル
+  caption?: string;
 }) {
   const [addState, addAction, addPending] = useActionState(
     addElement.bind(null, gatheringId),
@@ -153,7 +156,10 @@ export function ElementsEditor({
   return (
     <section aria-label="礼拝順序" className="rounded-lg border border-line bg-paper-raised p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-medium text-ink">礼拝順序</h2>
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h2 className="text-sm font-medium text-ink">礼拝順序</h2>
+          {caption ? <span className="text-xs text-ink-muted">{caption}</span> : null}
+        </div>
         <TemplateApplyForm gatheringId={gatheringId} hasElements={elements.length > 0} />
       </div>
       <p className="mt-1 text-xs text-ink-muted">

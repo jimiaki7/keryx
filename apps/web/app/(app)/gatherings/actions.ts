@@ -156,6 +156,8 @@ export async function addDelivery(
     };
   }
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
   return { ok: true, nonce: Date.now() };
 }
 
@@ -168,6 +170,8 @@ export async function removeDelivery(deliveryId: string, gatheringId: string): P
     .eq('id', deliveryId)
     .eq('workspace_id', workspace.id);
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
 }
 
 // ---------------------------------------------------------------------------
@@ -221,6 +225,8 @@ export async function addElement(
     return { error: '要素を追加できませんでした。もう一度お試しください。' };
   }
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
   return { ok: true, nonce: Date.now() };
 }
 
@@ -246,6 +252,8 @@ export async function updateElementTitle(
     .eq('workspace_id', workspace.id);
   if (error) return { error: '更新できませんでした。もう一度お試しください。' };
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
   return { ok: true, nonce: Date.now() };
 }
 
@@ -258,6 +266,8 @@ export async function deleteElement(elementId: string, gatheringId: string): Pro
     .eq('id', elementId)
     .eq('workspace_id', workspace.id);
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
 }
 
 export async function duplicateElement(elementId: string, gatheringId: string): Promise<void> {
@@ -286,6 +296,8 @@ export async function duplicateElement(elementId: string, gatheringId: string): 
     .from('service_elements')
     .insert({ ...source, position, gathering_id: gatheringId, workspace_id: workspace.id });
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
 }
 
 export async function moveElement(
@@ -320,6 +332,8 @@ export async function moveElement(
     .eq('id', neighbor.id)
     .eq('workspace_id', workspace.id);
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
 }
 
 // ---------------------------------------------------------------------------
@@ -381,5 +395,7 @@ export async function applyServiceTemplate(
     }
   }
   revalidatePath(`/gatherings/${gatheringId}`);
+  // 礼拝予定・礼拝順序はメッセージ詳細にも埋め込まれているため、そちらも更新する
+  revalidatePath('/messages/[id]', 'page');
   return { ok: true, nonce: Date.now() };
 }
