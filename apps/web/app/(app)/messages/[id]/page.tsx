@@ -41,6 +41,13 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
     .eq('message_id', message.id)
     .order('created_at', { ascending: true });
 
+  const { data: venues } = await supabase
+    .from('venues')
+    .select('id, name')
+    .eq('workspace_id', workspace.id)
+    .is('deleted_at', null)
+    .order('name', { ascending: true });
+
   const opportunities: OpportunityItem[] = (deliveriesRaw ?? [])
     .filter((d) => d.gatherings.deleted_at === null)
     .map((d) => ({
@@ -84,8 +91,8 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
       <div className="flex flex-col gap-5">
         <PassageEditor messageId={message.id} passages={passages} />
         <PreparationStageControl messageId={message.id} stage={message.preparation_stage} />
-        <MessageEditor message={message} opportunities={opportunities} />
-        <PreachElsewhere messageId={message.id} />
+        <MessageEditor message={message} opportunities={opportunities} venues={venues ?? []} />
+        <PreachElsewhere messageId={message.id} venues={venues ?? []} />
       </div>
     </>
   );

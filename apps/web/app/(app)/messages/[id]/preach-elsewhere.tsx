@@ -1,23 +1,25 @@
 'use client';
 
-import { useActionState, type KeyboardEvent } from 'react';
+import { useActionState } from 'react';
+import { VenueSelect } from '@/components/venue-select';
 import { preachElsewhere, type PreachElsewhereState } from './actions';
 import { GATHERING_KIND_LABELS } from '@/lib/labels';
 
 const KIND_OPTIONS = Object.entries(GATHERING_KIND_LABELS);
 const initial: PreachElsewhereState = {};
 
-function imeGuard(e: KeyboardEvent<HTMLInputElement>) {
-  const n = e.nativeEvent as unknown as { isComposing?: boolean; keyCode?: number };
-  if (e.key === 'Enter' && (n.isComposing || n.keyCode === 229)) e.preventDefault();
-}
-
 /**
  * 同じ説教を別の場所でも語るための複製フロー（Jimi 方針）。
  * 内容を複製した新しいメッセージを作り、その新しい場所・日時の礼拝予定を作成する。
  * メインの編集フォームの外に置く（フォームのネストを避ける）。
  */
-export function PreachElsewhere({ messageId }: { messageId: string }) {
+export function PreachElsewhere({
+  messageId,
+  venues,
+}: {
+  messageId: string;
+  venues: { id: string; name: string }[];
+}) {
   const [state, formAction, pending] = useActionState(
     preachElsewhere.bind(null, messageId),
     initial,
@@ -68,19 +70,8 @@ export function PreachElsewhere({ messageId }: { messageId: string }) {
             </select>
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <label htmlFor="pe-venue" className="text-xs font-medium text-ink-muted">
-              会場
-            </label>
-            <input
-              id="pe-venue"
-              name="venue"
-              type="text"
-              required
-              maxLength={100}
-              placeholder="例: 中山集会所"
-              onKeyDown={imeGuard}
-              className="rounded-md border border-line bg-paper px-2 py-1.5 text-sm"
-            />
+            <span className="text-xs font-medium text-ink-muted">会場</span>
+            <VenueSelect name="venue" venues={venues} placeholder="会場を選択 / 追加" />
           </div>
           <button
             type="submit"

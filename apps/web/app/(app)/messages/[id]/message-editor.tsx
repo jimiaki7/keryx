@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import type { KeyboardEvent } from 'react';
+import { VenueSelect } from '@/components/venue-select';
 import { GATHERING_KIND_LABELS } from '@/lib/labels';
 import {
   removeSpeakingOpportunity,
@@ -85,9 +86,11 @@ const labelClass = 'text-xs font-medium text-ink-muted';
 export function MessageEditor({
   message,
   opportunities,
+  venues,
 }: {
   message: EditableMessage;
   opportunities: OpportunityItem[];
+  venues: { id: string; name: string }[];
 }) {
   const [state, formAction, pending] = useActionState(updateMessage, initialState);
   // 保存成功時はサーバーが返した新しい version を使う（楽観ロック用）
@@ -172,18 +175,8 @@ export function MessageEditor({
             </select>
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <label htmlFor="opp-venue" className={labelClass}>
-              会場（任意）
-            </label>
-            <input
-              id="opp-venue"
-              name="opp_venue"
-              type="text"
-              maxLength={100}
-              placeholder="例: 本会堂"
-              onKeyDown={preventImeSubmit}
-              className={inputClass}
-            />
+            <span className={labelClass}>会場（任意）</span>
+            <VenueSelect name="opp_venue" venues={venues} placeholder="会場を選択 / 追加" />
           </div>
         </fieldset>
       </section>
