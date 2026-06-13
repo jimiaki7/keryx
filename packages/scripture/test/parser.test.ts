@@ -176,3 +176,54 @@ describe('formatPassage', () => {
     ).toBe('ヨハネ3:16-21');
   });
 });
+
+describe('parsePassage: Gate A 実データの表記ゆれ', () => {
+  it('詩篇の「篇」を章として解釈する（詩篇92篇）', () => {
+    expect(ok('詩篇 92篇')).toMatchObject({ bookId: 'Ps', startChapter: 92, endChapter: 92 });
+  });
+
+  it('全角マイナス(U+2212)を範囲記号として解釈する（イザヤ書40章1−11節）', () => {
+    expect(ok('イザヤ書 40章1−11節')).toMatchObject({
+      bookId: 'Isa',
+      startChapter: 40,
+      startVerse: 1,
+      endChapter: 40,
+      endVerse: 11,
+    });
+  });
+
+  it('全角マイナス＋フルネーム書名（ヨハネの手紙第一 4章14−21節）', () => {
+    expect(ok('ヨハネの手紙第一 4章14−21節')).toMatchObject({
+      bookId: '1John',
+      startChapter: 4,
+      startVerse: 14,
+      endChapter: 4,
+      endVerse: 21,
+    });
+  });
+
+  it('「番」を「節」の誤記として解釈する（1ヨハネ 4章1-6番）', () => {
+    expect(ok('1ヨハネ 4章1-6番')).toMatchObject({
+      bookId: '1John',
+      startChapter: 4,
+      startVerse: 1,
+      endVerse: 6,
+    });
+  });
+
+  it('括弧内の注記を除去して解釈する（詩篇44篇（参照：ローマ8:35〜39））', () => {
+    expect(ok('詩篇44篇（参照：ローマ8:35〜39）')).toMatchObject({
+      bookId: 'Ps',
+      startChapter: 44,
+      endChapter: 44,
+    });
+  });
+
+  it('非連続の節（1章1-5, 14節）は解釈せず拒否する（別箇所として分けて入力）', () => {
+    expect(errCode('ヨハネの福音書 1章1-5, 14節')).toBe('invalid_format');
+  });
+
+  it('書名「詩篇」自体の「篇」は章に変換しない（詩篇23）', () => {
+    expect(ok('詩篇23')).toMatchObject({ bookId: 'Ps', startChapter: 23 });
+  });
+});

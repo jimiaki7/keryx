@@ -1,7 +1,8 @@
 import { getBookByOsis, resolveBook, suggestBooks } from './books';
 import type { BibleBook, ParseError, ParseResult, PassageRange } from './types';
 
-const DASH = '[-‐–—~〜]';
+// 範囲記号: ハイフン各種・波ダッシュ・全角マイナス(U+2212。NFKC でも分解されないので明示)
+const DASH = '[-‐–—~〜−]';
 
 // 「ヨハネ3:16」「ヨハ 3:16-21」「John 3:16-4:2」「詩篇 23」「マタイ5-7」
 const COLON_REF = new RegExp(
@@ -163,7 +164,18 @@ function validateAndBuild(book: BibleBook, raw: RawRef): ParseResult {
  * 注: 節番号の上限（章ごとの節数）検証は未対応（バックログ: 節数マスタ追加後に対応）。
  */
 export function parsePassage(input: string): ParseResult {
-  const text = input.normalize('NFKC').replace(/[：]/g, ':').trim();
+  // 実データの表記ゆれを正規化する（Gate A で観測）:
+  // - NFKC で全角→半角（全角数字・コロン・チルダ等）
+  // - 括弧内の注記（例「（参照：ローマ8:35-39）」）を除去
+  // - 「篇」を章として扱う（詩篇の章表記。書名「詩篇」の篇は数字直後でないので不変）
+  // - 「番」は「節」の誤記として扱う
+  const text = input
+    .normalize('NFKC')
+    .replace(/[（(][^（()）]*[）)]/g, '')
+    .replace(/[：]/g, ':')
+    .replace(/(\d)\s*篇/g, '$1章')
+    .replace(/(\d)\s*番/g, '$1節')
+    .trim();
   if (!text) {
     return fail({ code: 'empty_input', message: '聖書箇所を入力してください。' });
   }
