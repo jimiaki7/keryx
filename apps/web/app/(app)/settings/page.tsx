@@ -57,13 +57,6 @@ export default async function SettingsPage() {
             >
               メッセージ一覧（CSV）
             </a>
-            <a
-              href="/api/exports/csv?entity=gatherings"
-              download
-              className="rounded-md border border-line px-3 py-1.5 text-sm text-indigo-deep hover:bg-indigo-deep/5"
-            >
-              礼拝予定一覧（CSV）
-            </a>
           </div>
         </section>
         <section
